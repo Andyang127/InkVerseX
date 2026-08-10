@@ -6,9 +6,9 @@
 ![Framework](https://img.shields.io/badge/.NET-.NET%202.0~.NET%2010-purple.svg)
 
 >
-> **墨语 X (InkVerse X)** 是一款面向工程、建筑与测量 CAD
-绘图设计的现代化通用增强插件套件。采用 **C# 原生核心模块 + VLX 扩展插件库**
-的双引擎架构，兼顾高端图形交互、全版本平滑兼容与极速绘图效率。
+> **墨语 X (InkVerse X)** 是一款面向工程、建筑与测量 Auto CAD
+绘图设计的通用增强插件套件。采用 **C# 原生核心模块 + VLX 扩展插件库**
+的双引擎架构，兼顾图形交互、全版本平滑兼容与极速绘图效率。
 >
 
 ---
@@ -47,7 +47,7 @@ X)** 发布与使用文档仓库。最新的可执行安装包为独立的单文
 
 | CAD 世代 | 支持 AutoCAD 版本范围 | 底层 Target Framework | 界面 UI 引擎 | 兼容状态     |
 |:-----------|:----------------------------|:------------------------|:-----------------|:----------------:|
-| **R17**    | AutoCAD 2007 ~ 2009         | .NET 3.5                | WinForms SleekUI | ✔ 完全兼容 |
+| **R17**    | AutoCAD 2007 ~ 2009         | .NET 2.0                | WinForms SleekUI | ✔ 完全兼容 |
 | **R18**    | AutoCAD 2010 ~ 2012         | .NET 3.5                | WinForms SleekUI | ✔ 完全兼容 |
 | **R19**    | AutoCAD 2013 ~ 2014         | .NET 4.0 / 4.5          | WPF / SleekUI    | ✔ 完全兼容 |
 | **R20**    | AutoCAD 2015 ~ 2016         | .NET 4.5.2              | WPF / SleekUI    | ✔ 完全兼容 |
@@ -239,9 +239,11 @@ X)** 发布与使用文档仓库。最新的可执行安装包为独立的单文
 - **官方 GitHub 仓库**：[Andyang127/InkVerseX](https://github.com/Andyang127/InkVerseX)
 - **联系 QQ**：806894478
 - **联系 Email**：ypj127@163.com
-- ：[浏览更多](https://www.douyin.com/user/MS4wLjABAAAA3MenKPeyKOaRDEFrkZW_mBE3e3DNQrCEulaj1adJWFQ)
+- **[浏览更多](https://www.douyin.com/user/MS4wLjABAAAA3MenKPeyKOaRDEFrkZW_mBE3e3DNQrCEulaj1adJWFQ)**
 
-![联系与打赏](Framework/Resources/Contact.png)
+<div align="center">
+  <img src="Framework/Resources/Contact.png" width="360" alt="联系与打赏二维码" style="border-radius: 8px;" />
+</div>
 
 ---
 
