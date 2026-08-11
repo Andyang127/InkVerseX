@@ -1,7 +1,7 @@
 Download
 # 墨语 X (InkVerse X) 插件套件用户手册
 
-![Release Version](https://img.shields.io/badge/Release-v0.1.0-blue.svg)
+![Release Version](https://img.shields.io/badge/Release-v0.1.1-blue.svg)
 ![AutoCAD Support](https://img.shields.io/badge/AutoCAD-2007~2027+-brightgreen.svg)
 ![Architecture](https://img.shields.io/badge/Architecture-C%23%20%2B%20VLX%20Dual--Engine-orange.svg)
 ![Framework](https://img.shields.io/badge/.NET-.NET%202.0~.NET%2010-purple.svg)
@@ -24,7 +24,7 @@ X)** 发布与使用文档仓库。最新的可执行安装包为独立的单文
 
 - **📦 安装包发布页面**：[🚀 点击前往 GitHub Releases 下载最新安装包](https://github.com/Andyang127/InkVerseX/releases/latest)
 - **📄 完整网页版手册**：[点击在浏览器中打开 Readme.html 交互手册](Readme.html)
-- **一键安装**：下载 `InkVerseX_Setup_v0.1.0.exe` 后双击运行安装程序，根据向导提示完成安装即可。
+- **一键安装**：下载 `InkVerseX_Setup_v0.1.1.exe` 后双击运行安装程序，根据向导提示完成安装即可。
 - **自动挂载**：安装程序会自动完成 AutoCAD 注册表注册与受信任路径配置，启动 AutoCAD 后即可直接使用主菜单、Ribbon 功能区或经典工具栏。
 
 ---
