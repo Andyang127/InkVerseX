@@ -1,0 +1,1451 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="墨语 X (InkVerse X) v0.1.4 用户使用手册，包含 8 大 C# 核心原生模块与 6 大 VLX 扩展插件的操作说明、实际命令与常见问题解答。">
+    <title>墨语 X (InkVerse X) v0.1.4 用户手册</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #3B4453;       /* 墨语X 主主题色 */
+            --primary-light: #2563EB;       /* 科技蓝 */
+            --accent-color: #2563EB;        /* 蓝色强调 */
+            --accent-light: #EFF6FF;        /* 浅蓝背景 */
+            --bg-color: #F8FAFC;            /* 页面底色 */
+            --text-color: #334155;          /* 正文文字 */
+            --text-dark: #0F172A;           /* 标题深色 */
+            --border-color: #E2E8F0;        /* 边框浅灰 */
+            --card-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.06), 0 2px 8px -1px rgba(15, 23, 42, 0.04);
+            --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        * {
+            box-sizing: border-box;
+            scroll-behavior: smooth;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", "Microsoft YaHei", sans-serif;
+            line-height: 1.8;
+            color: var(--text-color);
+            background-color: var(--bg-color);
+            margin: 0;
+            padding: 0;
+            -webkit-font-smoothing: antialiased;
+        }
+        .wrapper {
+            display: flex;
+            max-width: 1360px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            gap: 32px;
+        }
+        /* 分级侧边悬浮导航栏 */
+        .sidebar {
+            width: 330px;
+            position: sticky;
+            top: 40px;
+            max-height: calc(100vh - 80px);
+            overflow-y: auto;
+            background: #FFFFFF;
+            border-radius: 14px;
+            padding: 20px;
+            box-shadow: var(--card-shadow);
+            border: 1px solid var(--border-color);
+            flex-shrink: 0;
+        }
+        .sidebar h4 {
+            margin: 0 0 14px 0;
+            color: var(--text-dark);
+            font-size: 15px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 10px;
+        }
+        .sidebar h4 i {
+            color: var(--primary-light);
+        }
+        .sidebar ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        /* 一级目录 */
+        .toc-level-1 > a {
+            font-weight: 700;
+            color: var(--text-dark);
+            font-size: 13.5px;
+            padding: 8px 10px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+            transition: var(--transition);
+        }
+        .toc-level-1 > a:hover {
+            background-color: #F1F5F9;
+            color: var(--primary-light);
+        }
+        /* 二级分级子目录 */
+        .toc-level-2 {
+            list-style: none;
+            padding-left: 18px;
+            margin: 2px 0 8px 0;
+            border-left: 2px solid #E2E8F0;
+        }
+        .toc-level-2 a {
+            font-weight: 400;
+            color: #64748B;
+            font-size: 12.5px;
+            padding: 5px 10px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            text-decoration: none;
+            transition: var(--transition);
+        }
+        .toc-level-2 a:hover {
+            color: var(--primary-light);
+            background-color: #F8FAFC;
+            padding-left: 14px;
+        }
+        /* 主内容容器 */
+        .container {
+            flex: 1;
+            background: #FFFFFF;
+            padding: 48px;
+            box-shadow: var(--card-shadow);
+            border-radius: 16px;
+            border: 1px solid var(--border-color);
+            max-width: 980px;
+            min-width: 0;
+        }
+        header {
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 24px;
+            margin-bottom: 36px;
+            position: relative;
+        }
+        .brand-badge {
+            background: linear-gradient(135deg, var(--primary-color), #2563EB);
+            color: white;
+            padding: 4px 14px;
+            font-size: 12px;
+            font-weight: 600;
+            border-radius: 20px;
+            display: inline-block;
+            margin-bottom: 12px;
+            letter-spacing: 0.5px;
+        }
+        h1 {
+            color: var(--text-dark);
+            margin: 0 0 10px 0;
+            font-size: 28px;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+        }
+        header p {
+            margin: 0;
+            color: #64748B;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        /* 提示框 */
+        .highlight {
+            background: #F8FAFC;
+            padding: 24px;
+            border-radius: 12px;
+            border-left: 4px solid var(--primary-light);
+            margin: 24px 0;
+            border-top: 1px solid var(--border-color);
+            border-right: 1px solid var(--border-color);
+            border-bottom: 1px solid var(--border-color);
+            box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+        }
+        .highlight h3 {
+            color: var(--primary-light);
+            margin-top: 0;
+            margin-bottom: 12px;
+            font-size: 17px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: transparent;
+            padding: 0;
+            border: none;
+        }
+        .highlight p {
+            margin: 0 0 10px 0;
+            font-size: 14px;
+            color: #475569;
+        }
+        .highlight ul {
+            padding-left: 20px;
+            margin: 0;
+        }
+        .highlight li {
+            font-size: 13.5px;
+            margin-bottom: 6px;
+            color: #475569;
+        }
+        h2 {
+            color: var(--text-dark);
+            margin-top: 48px;
+            margin-bottom: 20px;
+            font-size: 21px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 10px;
+        }
+        h2 i {
+            color: var(--primary-light);
+            font-size: 19px;
+        }
+        h3 {
+            color: var(--text-dark);
+            margin-top: 32px;
+            margin-bottom: 14px;
+            font-size: 17px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: #F8FAFC;
+            padding: 10px 16px;
+            border-radius: 8px;
+            border-left: 4px solid var(--primary-light);
+        }
+        .h3-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .h3-icon {
+            width: 26px;
+            height: 26px;
+            vertical-align: middle;
+            border-radius: 4px;
+        }
+        .h3-tag {
+            font-size: 12px;
+            font-weight: 500;
+            color: #64748B;
+            background: #EDF2F7;
+            padding: 2px 8px;
+            border-radius: 4px;
+        }
+        p {
+            margin-top: 0;
+            margin-bottom: 14px;
+            color: var(--text-color);
+            font-size: 14px;
+        }
+        /* 指令卡片 */
+        .cmd-box {
+            background: #F1F5F9;
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 14px 18px;
+            margin: 14px 0;
+            font-family: Consolas, Monaco, "Courier New", monospace;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .cmd-tag {
+            font-weight: bold;
+            color: var(--primary-light);
+            font-size: 15px;
+        }
+        .cmd-note {
+            font-family: -apple-system, sans-serif;
+            font-size: 13px;
+            color: #64748B;
+        }
+        /* 步骤引导面板 */
+        .step-box {
+            background: #F8FAFC;
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 20px 24px;
+            margin: 16px 0 24px 0;
+        }
+        .step-title {
+            font-weight: 700;
+            color: var(--primary-color);
+            font-size: 14px;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .step-list {
+            padding-left: 20px;
+            margin: 0;
+        }
+        .step-list li {
+            margin-bottom: 10px;
+            font-size: 13.5px;
+            color: #475569;
+            line-height: 1.65;
+        }
+        .ui-badge {
+            display: inline-block;
+            background: #E2E8F0;
+            color: #334155;
+            padding: 1px 7px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+            margin: 0 2px;
+            border: 1px solid #CBD5E1;
+        }
+        /* 图文展示容器 */
+        .doc-img-container {
+            margin: 20px 0;
+            text-align: center;
+            background: #F8FAFC;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 16px;
+            box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+        }
+        .doc-img-container img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            border: 1px solid #E2E8F0;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            transition: transform 0.2s ease-in-out;
+        }
+        .doc-img-container img:hover {
+            transform: scale(1.01);
+        }
+        .doc-img-caption {
+            font-size: 13px;
+            color: #64748B;
+            margin-top: 10px;
+            font-weight: 500;
+        }
+        /* 流程图卡片 */
+        .workflow-card {
+            background: #FFFFFF;
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 16px;
+            margin: 16px 0;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
+        }
+        .workflow-steps {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-top: 10px;
+        }
+        .wf-node {
+            flex: 1;
+            min-width: 180px;
+            background: #F1F5F9;
+            border: 1px solid #CBD5E1;
+            border-radius: 8px;
+            padding: 12px;
+            text-align: center;
+        }
+        .wf-node-title {
+            font-weight: 700;
+            font-size: 13px;
+            color: var(--text-dark);
+            margin-bottom: 4px;
+        }
+        .wf-node-desc {
+            font-size: 12px;
+            color: #64748B;
+            line-height: 1.4;
+        }
+        .wf-arrow {
+            color: #94A3B8;
+            font-size: 16px;
+        }
+        /* 特性网格 */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 16px;
+            margin: 20px 0;
+        }
+        .card {
+            background: #F8FAFC;
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 18px;
+            transition: var(--transition);
+        }
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px -4px rgba(0, 0, 0, 0.06);
+            border-color: #CBD5E1;
+        }
+        .card-icon {
+            width: 38px;
+            height: 38px;
+            border-radius: 8px;
+            background: #EFF6FF;
+            color: var(--primary-light);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            margin-bottom: 12px;
+        }
+        .card h4 {
+            margin: 0 0 6px 0;
+            color: var(--text-dark);
+            font-size: 15px;
+        }
+        .card p {
+            margin: 0;
+            font-size: 13px;
+            color: #64748B;
+            line-height: 1.55;
+        }
+        /* 表格样式 */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            border-radius: 10px;
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+        }
+        th, td {
+            padding: 12px 16px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 13.5px;
+        }
+        th {
+            background: #F1F5F9;
+            color: var(--text-dark);
+            font-weight: 600;
+        }
+        tr:last-child td {
+            border-bottom: none;
+        }
+        tr:nth-child(even) {
+            background-color: #F8FAFC;
+        }
+        .status-ok {
+            color: #059669;
+            font-weight: 600;
+        }
+        /* FAQ 问题框 */
+        .faq-item {
+            margin-bottom: 20px;
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 18px 22px;
+            background: #FFFFFF;
+        }
+        .faq-q {
+            font-weight: 700;
+            color: var(--text-dark);
+            font-size: 15px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .faq-q i {
+            color: var(--primary-light);
+        }
+        .faq-a {
+            font-size: 14px;
+            color: #475569;
+            margin: 0;
+            line-height: 1.65;
+        }
+        .footer {
+            margin-top: 45px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border-color);
+            text-align: center;
+            color: #64748B;
+            font-size: 13.5px;
+        }
+        .btn-more {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--primary-color);
+            color: white;
+            padding: 10px 24px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            margin-top: 12px;
+            transition: var(--transition);
+        }
+        .btn-more:hover {
+            opacity: 0.9;
+            transform: scale(1.02);
+        }
+        @media (max-width: 900px) {
+            .wrapper {
+                flex-direction: column;
+            }
+            .sidebar {
+                width: 100%;
+                position: relative;
+                top: 0;
+                max-height: none;
+            }
+            .container {
+                padding: 24px;
+            }
+            .workflow-steps {
+                flex-direction: column;
+            }
+            .wf-arrow {
+                transform: rotate(90deg);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="wrapper">
+        <!-- 分级侧边悬浮目录导航栏 -->
+        <aside class="sidebar">
+            <h4><i class="fa-solid fa-list-ul"></i> 功能目录</h4>
+            <ul>
+                <li class="toc-level-1"><a href="#overview"><i class="fa-solid fa-compass"></i> 1. 概览与系统架构</a></li>
+                
+                <li class="toc-level-1">
+                    <a href="#cs-suite"><i class="fa-solid fa-cube"></i> 2. C# 核心原生模块</a>
+                    <ul class="toc-level-2">
+                        <li><a href="#cs-box">2.1 自动图框与排版 (BP_Frame)</a></li>
+                        <li><a href="#cs-plot">2.2 批量打印与切图 (BatchPrint)</a></li>
+                        <li><a href="#cs-ime">2.3 输入法智能切换 (IME)</a></li>
+                        <li><a href="#cs-layer">2.4 图层管理辅助 (LayerManager)</a></li>
+                        <li><a href="#cs-table">2.5 表格数据提取 (LiveTable)</a></li>
+                        <li><a href="#cs-snap">2.6 视口截图导出 (SNAP)</a></li>
+                        <li><a href="#cs-clean">2.7 图纸清理维护 (SmartClean)</a></li>
+                        <li><a href="#cs-lisp">2.8 LISP 插件管理与维护 (VlxSuite)</a></li>
+                        <li><a href="#cs-about">2.9 关于与界面恢复</a></li>
+                    </ul>
+                </li>
+
+                <li class="toc-level-1">
+                    <a href="#vlx-suite"><i class="fa-solid fa-cubes"></i> 3. VLX 扩展工具库</a>
+                    <ul class="toc-level-2">
+                        <li><a href="#vlx-zbbz">3.1 ZBBZ 坐标高程系统</a></li>
+                        <li><a href="#vlx-bhsx">3.2 BHSX 智能编号速写</a></li>
+                        <li><a href="#vlx-zcd">3.3 ZCD 长度统计标注</a></li>
+                        <li><a href="#vlx-czth">3.4 CZTH 全能文本替换</a></li>
+                        <li><a href="#vlx-xzh">3.5 XZH 全能线转换</a></li>
+                        <li><a href="#vlx-xzx">3.6 XZX 泛型转换矩阵</a></li>
+                    </ul>
+                </li>
+
+                <li class="toc-level-1"><a href="#compatibility"><i class="fa-solid fa-desktop"></i> 4. CAD 版本兼容表</a></li>
+                <li class="toc-level-1"><a href="#faq"><i class="fa-solid fa-circle-question"></i> 5. 常见问题解答 (FAQ)</a></li>
+                <li class="toc-level-1"><a href="#contact"><i class="fa-solid fa-paper-plane"></i> 6. 作者与联系方式</a></li>
+            </ul>
+        </aside>
+
+        <!-- 主内容区 -->
+        <main class="container">
+            <header>
+                <span class="brand-badge"><i class="fa-solid fa-layer-group"></i> InkVerse X</span>
+                <h1>墨语 X (InkVerse X) 用户使用手册</h1>
+                <p><i class="fa-solid fa-code-branch"></i> 架构版本: v0.1.4 | 适配 AutoCAD 2007 ~ 2027 (涵盖 R17 至 R27 全世代 32/64 位)</p>
+            </header>
+
+            <!-- 1. 快速概览 -->
+            <section id="overview">
+                <div class="highlight">
+                    <h3><i class="fa-solid fa-circle-info"></i> 系统架构与设计准则</h3>
+                    <p><b>墨语 X (InkVerse X)</b> 是一套面向工程设计、建筑施工、规划与测绘制图场景的 AutoCAD 辅助插件集合。系统采用 <b>宿主装配 + 8 大 C# 核心原生模块 + 6 大 VLX 扩展工具库</b> 的模块化架构，保障了系统稳定性与功能扩展能力。</p>
+                    <ul>
+                        <li><strong>宿主引导程序 (<code>InkVerseX.dll</code>)</strong>：负责 AutoCAD 环境自适应初始化、动态扫描加载各业务子插件，并统一挂载 Ribbon 功能区选项卡、经典下拉菜单与快捷工具栏。</li>
+                        <li><strong>8 大 C# 核心原生模块</strong>：涵盖图框排版、批量打印与分拆、输入法智能感知、图层快速控制、表格与文字提取、高清视口截图、数据库分级深度清理、LISP 插件集中调度。</li>
+                        <li><strong>6 大 VLX 扩展工具库</strong>：涵盖坐标高程标注、编号速写、线长统计、多模式文本替换、线型清洗转换、几何图元矩阵重构。</li>
+                        <li><strong>原生图元安全性</strong>：所有操作均通过 AutoCAD 原生 .NET API 构建原生标准对象（图块、多段线、文本、原生表格），无任何第三方自定义实体 (Proxy Entity)，脱离本插件环境图纸完整可读。</li>
+                        <li><strong>统一安装路径体系</strong>：墨语 X 综合套件安装于 <code>%APPDATA%\InkVerseX</code>；独立分支插件安装于 <code>%APPDATA%\InkVerse\&lt;模块名&gt;</code>，规范整洁。</li>
+                    </ul>
+                </div>
+
+                <div class="grid">
+                    <div class="card">
+                        <div class="card-icon"><i class="fa-solid fa-microchip"></i></div>
+                        <h4>解耦模块化设计</h4>
+                        <p>子模块独立编译，按需动态加载。任何单个子模块的维护或更新均不影响宿主其他模块的安全运行。</p>
+                    </div>
+                    <div class="card">
+                        <div class="card-icon"><i class="fa-solid fa-shield-halved"></i></div>
+                        <h4>运行环境守护</h4>
+                        <p>内置异常隔离机制，自动守护捕捉 (OSMODE) 与命令行回显 (CMDECHO) 等 CAD 系统变量，防止图纸环境异常被污染。</p>
+                    </div>
+                    <div class="card">
+                        <div class="card-icon"><i class="fa-solid fa-laptop-code"></i></div>
+                        <h4>全世代深度适配</h4>
+                        <p>针对各 CAD 版本的运行时基线（.NET 3.5 到 .NET 10.0-windows）分别编译，消除版本兼容断层。</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ================= C# 核心套件 ================= -->
+            <section id="cs-suite">
+                <h2><i class="fa-solid fa-cube"></i> 2. C# 核心原生模块使用说明</h2>
+
+                <!-- 2.1 BP_Frame -->
+                <article id="cs-box">
+                    <h3>
+                        <span class="h3-title">
+                            <img src="Resources/InkBox.png" onerror="if(this.src.indexOf('Shared/Resources')===-1)this.src='Shared/Resources/InkBox.png';" alt="InkBox" class="h3-icon" />
+                            2.1 自动图框与排版管理 (CAD Auto BP_Frame)
+                        </span>
+                        <span class="h3-tag">BP_Frame</span>
+                    </h3>
+                    <p>面向图纸出图环节的图框自动适配生成、出图比例推算、散乱图框规整对齐与标题栏数据集中提取工具。</p>
+                    
+                    <div class="cmd-box">
+                        <span class="cmd-tag">INKBOX / INKALIGN / INKFRAMEDATA / INKCLONE</span>
+                        <span class="cmd-note">图框管理与排版命令集</span>
+                    </div>
+
+                    <div class="doc-img-container">
+                        <img src="Resources/docs/BoxPlotHelp.png" onerror="if(this.src.indexOf('Shared/Resources')===-1)this.src='Shared/Resources/docs/BoxPlotHelp.png';" alt="自动图框工具主控制面板" />
+                        <div class="doc-img-caption">图 2.1 - 自动图框生成向导与排版控制面板</div>
+                    </div>
+
+                    <div class="step-box">
+                        <div class="step-title"><i class="fa-solid fa-list-check"></i> 详细操作步骤与功能说明：</div>
+                        <ol class="step-list">
+                            <li><b>启动图框向导 (<span class="ui-badge">INKBOX</span>)</b>：
+                                <ul>
+                                    <li>在命令行输入 <code>INKBOX</code>，或在“墨语 X”Ribbon 菜单点击【智能图框】图标，打开图框主窗口；</li>
+                                    <li><b>版面与标准选择</b>：支持 ISO 标准图框尺寸（A0、A1、A2、A3、A4 横版与竖版），以及自定义长宽的工程加长图框。</li>
+                                </ul>
+                            </li>
+                            <li><b>两种图框生成模式</b>：
+                                <ul>
+                                    <li><b>框选图元自适应模式</b>：在绘图区框选图纸设计内容，算法自动计算外接矩形边界，并根据预设的标准出图比例（如 1:50、1:100、1:150、1:200 等）智能匹配最合适图框，完成定心插入；</li>
+                                    <li><b>定点插入模式</b>：指定标准图幅与比例后，直接在图纸空间或模型空间鼠标点击确定插入基点。</li>
+                                </ul>
+                            </li>
+                            <li><b>散乱图框规整对齐 (<span class="ui-badge">INKALIGN</span>)</b>：
+                                <ul>
+                                    <li>命令行输入 <code>INKALIGN</code>，批量框选多张图框；</li>
+                                    <li>系统弹出对齐对话框，支持设置行间距、列间距，并可选择按“从左到右、从上到下”或“从上到下、从左到右”进行矩阵对齐排列，方便成套整理图纸。</li>
+                                </ul>
+                            </li>
+                            <li><b>标题栏属性提取与修改 (<span class="ui-badge">INKFRAMEDATA</span>)</b>：
+                                <ul>
+                                    <li>命令行输入 <code>INKFRAMEDATA</code>，呼出右侧停靠面板；</li>
+                                    <li>自动扫描识别全图图框中的图名、图号、版次、比例、日期等属性块字段，支持在面板中直接批量修改并回写图面。</li>
+                                </ul>
+                            </li>
+                            <li><b>视口与图框快速克隆 (<span class="ui-badge">INKCLONE</span>)</b>：
+                                <ul>
+                                    <li>命令行输入 <code>INKCLONE</code>，可将现有图框的图层状态、视口图层覆盖及比例参数快速复制应用至其他布局。</li>
+                                </ul>
+                            </li>
+                        </ol>
+                    </div>
+                </article>
+
+                <!-- 2.2 BatchPrint -->
+                <article id="cs-plot">
+                    <h3>
+                        <span class="h3-title">
+                            <img src="Resources/InkPlot.png" onerror="if(this.src.indexOf('Shared/Resources')===-1)this.src='Shared/Resources/InkPlot.png';" alt="InkPlot" class="h3-icon" />
+                            2.2 批量打印与切图发布 (CAD Auto BatchPrint)
+                        </span>
+                        <span class="h3-tag">BatchPrint</span>
+                    </h3>
+                    <p>专为工程成果交付设计的图框识别、DWG 自动切图分拆、PDF 批量虚拟打印与图纸目录交叉比对套件。</p>
+                    
+                    <div class="cmd-box">
+                        <span class="cmd-tag">INKPLOT / INKPLOTDIALOG / INKPLOTDETECT / INKPDFMERGE</span>
+                        <span class="cmd-note">批量打印命令集 (兼容别名: SBP / SBPLOT / SBPDLG / SBPM)</span>
+                    </div>
+
+                    <!-- SVG 流程架构图 -->
+                    <div class="workflow-card">
+                        <div class="step-title"><i class="fa-solid fa-diagram-project"></i> 批量处理流水线架构：</div>
+                        <div class="workflow-steps">
+                            <div class="wf-node">
+                                <div class="wf-node-title"><i class="fa-solid fa-magnifying-glass"></i> 1. 图框识别</div>
+                                <div class="wf-node-desc">图块属性 / 闭合线框 / 空间网格启发式探测</div>
+                            </div>
+                            <div class="wf-arrow"><i class="fa-solid fa-arrow-right"></i></div>
+                            <div class="wf-node">
+                                <div class="wf-node-title"><i class="fa-solid fa-file-export"></i> 2. 成果分拆</div>
+                                <div class="wf-node-desc">DWG 独立切图 + 天正 T3 格式向下兼容降转</div>
+                            </div>
+                            <div class="wf-arrow"><i class="fa-solid fa-arrow-right"></i></div>
+                            <div class="wf-node">
+                                <div class="wf-node-title"><i class="fa-solid fa-print"></i> 3. 打印发布</div>
+                                <div class="wf-node-desc">后台批量虚拟打印 + PDF 自动拼装合并 (INKPDFMERGE)</div>
+                            </div>
+                            <div class="wf-arrow"><i class="fa-solid fa-arrow-right"></i></div>
+                            <div class="wf-node">
+                                <div class="wf-node-title"><i class="fa-solid fa-spell-check"></i> 4. 目录核对</div>
+                                <div class="wf-node-desc">TOC 目录表格与标题栏双向模糊核对</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="step-box">
+                        <div class="step-title"><i class="fa-solid fa-list-check"></i> 详细操作步骤与核心功能：</div>
+                        <ol class="step-list">
+                            <li><b>唤起工作台</b>：
+                                <ul>
+                                    <li>命令行输入 <code>INKPLOT</code>（或 <code>SBP</code>）呼出侧边栏快速打印面板，适用于当前图纸的快速打印与参数微调；</li>
+                                    <li>输入 <code>INKPLOTDIALOG</code>（或 <code>SBPDLG</code>）打开独立批量工作台，支持多文件批处理与切图配置。</li>
+                                </ul>
+                            </li>
+                            <li><b>三重图框识别机制</b>：
+                                <ul>
+                                    <li><b>图块模式 (BlockFrame)</b>：识别指定的图签块，精准捕捉图号、图名、版本号与出图比例；</li>
+                                    <li><b>线框模式 (LayerFrame)</b>：根据指定图层与闭合多段线的长宽比，识别非块图框；</li>
+                                    <li><b>空间网格探测 (SmartGrid)</b>：采用几何空间网格拓扑算法，抗干扰能力强。执行 <code>INKPLOTDETECT</code> 可在绘图区高亮预览图框识别结果。</li>
+                                </ul>
+                            </li>
+                            <li><b>DWG 独立切分与 T3 降转</b>：
+                                <ul>
+                                    <li>自动将模型或布局中的各图框裁切为独立的单张 DWG 文件，并按 <code>{图号}_{图名}_{版本}</code> 规则自动命名；</li>
+                                    <li>原生支持天正 T3 / 2004 格式降级转换，便于下游施工审查无障碍读取。</li>
+                                </ul>
+                            </li>
+                            <li><b>PDF 批量虚拟打印与一键合并 (<span class="ui-badge">INKPDFMERGE</span>)</b>：
+                                <ul>
+                                    <li>后台调用虚拟打印机完成连续图纸输出，支持图纸自动旋转对齐与页面居中；</li>
+                                    <li>输入 <code>INKPDFMERGE</code>（或 <code>SBPM</code>）可一键将输出的多份单页 PDF 拼接合并为完整的项目图册。</li>
+                                </ul>
+                            </li>
+                            <li><b>图纸目录 (TOC) 交叉比对与自动纠错</b>：
+                                <ul>
+                                    <li>一键读取图面目录表格或图纸说明文本，与图框标题栏属性进行双向模糊交叉比对，缺图或信息不符自动高亮预警。</li>
+                                </ul>
+                            </li>
+                        </ol>
+                    </div>
+                </article>
+
+                <!-- 2.3 IME -->
+                <article id="cs-ime">
+                    <h3>
+                        <span class="h3-title">
+                            <img src="Resources/InkIme.png" onerror="if(this.src.indexOf('Shared/Resources')===-1)this.src='Shared/Resources/InkIme.png';" alt="InkIme" class="h3-icon" />
+                            2.3 智能中英输入法状态管理 (CAD Auto IME)
+                        </span>
+                        <span class="h3-tag">IME</span>
+                    </h3>
+                    <p>智能感知绘图视口、命令行与文字编辑状态，在操作快捷键时保持纯英文，在编辑文字时自动激活中文输入法。</p>
+                    
+                    <div class="cmd-box">
+                        <span class="cmd-tag">TOGGLEAUTOIME / CUSTOMAUTOIME</span>
+                        <span class="cmd-note">开关切换 (别名: OpenCadIme / InkIme / CadIme) / 配置面板 (别名: ImeConfig)</span>
+                    </div>
+
+                    <!-- 状态机示意卡片 -->
+                    <div class="workflow-card">
+                        <div class="step-title"><i class="fa-solid fa-code-compare"></i> 输入法智能感知状态机运转原理：</div>
+                        <div class="workflow-steps">
+                            <div class="wf-node">
+                                <div class="wf-node-title"><i class="fa-solid fa-crosshairs"></i> 绘图视口 / 命令空闲</div>
+                                <div class="wf-node-desc">系统通过底层 API 强制保持<b>英文状态</b>，按 L/C/REC 等快捷键直接生效，绝不弹出拼音输入框。</div>
+                            </div>
+                            <div class="wf-arrow"><i class="fa-solid fa-arrow-right"></i></div>
+                            <div class="wf-node">
+                                <div class="wf-node-title"><i class="fa-solid fa-pen-nib"></i> 在位文字 / 表格编辑</div>
+                                <div class="wf-node-desc">双击进入单行/多行文字、表格单元格、属性块或天正单行文字，系统毫秒级切换为<b>中文状态</b>。</div>
+                            </div>
+                            <div class="wf-arrow"><i class="fa-solid fa-arrow-right"></i></div>
+                            <div class="wf-node">
+                                <div class="wf-node-title"><i class="fa-solid fa-arrow-rotate-left"></i> 完成编辑 / ESC 退出</div>
+                                <div class="wf-node-desc">文字录入完毕点击画布或按下 ESC，系统感知焦点转移并<b>即刻复位为英文</b>。</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="step-box">
+                        <div class="step-title"><i class="fa-solid fa-list-check"></i> 详细操作步骤与功能说明：</div>
+                        <ol class="step-list">
+                            <li><b>一键开关控制 (<span class="ui-badge">TOGGLEAUTOIME</span>)</b>：
+                                <ul>
+                                    <li>在命令行输入 <code>TOGGLEAUTOIME</code>（或 <code>InkIme</code> / <code>OpenCadIme</code>），命令行将实时提示当前启用状态；</li>
+                                    <li>亦可直接点击 Ribbon 选项卡上的【自动输入法】按钮进行快速启闭。</li>
+                                </ul>
+                            </li>
+                            <li><b>在位文字编辑器智能感知</b>：
+                                <ul>
+                                    <li>针对多行文字在位编辑器 (<code>AcInPlaceEdit</code>)、表格单元格编辑 (<code>TABLEDIT</code>)、天正单行文字 (<code>DHWZ</code>/<code>TTEXT</code>) 与属性块编辑，输入法状态机自动感知识别并激活中文；从编辑状态切回绘图区后，自动复位为英文。</li>
+                                </ul>
+                            </li>
+                            <li><b>个性化配置面板 (<span class="ui-badge">CUSTOMAUTOIME</span>)</b>：
+                                <ul>
+                                    <li>输入 <code>CUSTOMAUTOIME</code>（或 <code>ImeConfig</code>）打开参数配置面板；</li>
+                                    <li><b>输入法适配</b>：支持微软拼音、微信输入法、搜狗拼音、手心输入法等，提供 TSF 与 IMM32 双轨支持；</li>
+                                    <li><b>命令白名单</b>：可自由添加或移除需要激活中文输入法的定制命令。</li>
+                                </ul>
+                            </li>
+                        </ol>
+                    </div>
+                </article>
+
+                <!-- 2.4 LayerManager -->
+                <article id="cs-layer">
+                    <h3>
+                        <span class="h3-title">
+                            <img src="Resources/InkLayer.png" onerror="if(this.src.indexOf('Shared/Resources')===-1)this.src='Shared/Resources/InkLayer.png';" alt="InkLayer" class="h3-icon" />
+                            2.4 图层管理辅助工具 (CAD Auto LayerManager)
+                        </span>
+                        <span class="h3-tag">LayerManager</span>
+                    </h3>
+                    <p>提供基于鼠标点选的图层快速隐藏、临时隔离与无损还原、图层锁定与置为当前功能。</p>
+                    
+                    <div class="cmd-box">
+                        <span class="cmd-tag">INKLAYER / INKLAYERHIDE / INKLAYERISO / INKLAYERUNISO</span>
+                        <span class="cmd-note">快捷图层指令集 (支持 InkLayerShow, InkLayerLock, InkLayerCur, InkLayerAllOn)</span>
+                    </div>
+
+                    <div class="doc-img-container">
+                        <img src="Resources/docs/LayerNinjaHelp.png" onerror="if(this.src.indexOf('Shared/Resources')===-1)this.src='Shared/Resources/docs/LayerNinjaHelp.png';" alt="图层忍者快捷管理面板" />
+                        <div class="doc-img-caption">图 2.2 - 图层管理控制台与点选交互说明</div>
+                    </div>
+
+                    <div class="step-box">
+                        <div class="step-title"><i class="fa-solid fa-list-check"></i> 详细操作步骤与功能说明：</div>
+                        <ol class="step-list">
+                            <li><b>点选隐藏图层 (<span class="ui-badge">INKLAYERHIDE</span>)</b>：
+                                <ul>
+                                    <li>在命令行输入 <code>INKLAYERHIDE</code>。在图面上鼠标左键点击任意图元，该图元所在的图层将立刻被隐藏；</li>
+                                    <li>支持连续多次点击隐藏，按 <code>Esc</code> 键或回车完成退出（当前激活图层有保护提示，避免误隐藏）。</li>
+                                </ul>
+                            </li>
+                            <li><b>图层临时隔离 (<span class="ui-badge">INKLAYERISO</span>)</b>：
+                                <ul>
+                                    <li>输入 <code>INKLAYERISO</code>，框选需要保留的工作实体；</li>
+                                    <li>程序会自动暂存当前的图层状态快照，并将除选中图元所在图层及当前工作图层外的其他所有图层瞬间关闭。</li>
+                                </ul>
+                            </li>
+                            <li><b>隔离状态精确还原 (<span class="ui-badge">INKLAYERUNISO</span>)</b>：
+                                <ul>
+                                    <li>输入 <code>INKLAYERUNISO</code>，程序读取暂存的快照数据，一键将图层显隐状态精确回滚到隔离前的初始状态。</li>
+                                </ul>
+                            </li>
+                            <li><b>其他便捷图层指令</b>：
+                                <ul>
+                                    <li><code>INKLAYERSHOW</code>：一键开启全图所有被隐藏的图层；</li>
+                                    <li><code>INKLAYERLOCK</code>：点击图元将其所在图层锁定，防止误改动；</li>
+                                    <li><code>INKLAYERCUR</code>：点击任意实体直接将其图层置为当前工作图层；</li>
+                                    <li><code>INKLAYERALLON</code>：一键解除全图所有图层的隐藏、冻结与锁定状态。</li>
+                                </ul>
+                            </li>
+                        </ol>
+                    </div>
+                </article>
+
+                <!-- 2.5 LiveTable -->
+                <article id="cs-table">
+                    <h3>
+                        <span class="h3-title">
+                            <img src="Resources/InkTable.png" onerror="if(this.src.indexOf('Shared/Resources')===-1)this.src='Shared/Resources/InkTable.png';" alt="InkTable" class="h3-icon" />
+                            2.5 表格与文本数据提取 (CAD Auto LiveTable)
+                        </span>
+                        <span class="h3-tag">LiveTable</span>
+                    </h3>
+                    <p>用于提取 AutoCAD 图面上的原生 Table 实体与零散文字网格，并导出为标准 CSV/Excel 电子表格。</p>
+                    
+                    <div class="cmd-box">
+                        <span class="cmd-tag">INKTABLE</span>
+                        <span class="cmd-note">呼出实时表格提取控制面板</span>
+                    </div>
+
+                    <div class="doc-img-container">
+                        <img src="Resources/docs/LiveTablehelp.png" onerror="if(this.src.indexOf('Shared/Resources')===-1)this.src='Shared/Resources/docs/LiveTablehelp.png';" alt="实时表格提取控制面板" />
+                        <div class="doc-img-caption">图 2.3 - 表格提取控制面板与导出预览</div>
+                    </div>
+
+                    <div class="step-box">
+                        <div class="step-title"><i class="fa-solid fa-list-check"></i> 详细操作步骤与功能说明：</div>
+                        <ol class="step-list">
+                            <li><b>启动命令 (<span class="ui-badge">INKTABLE</span>)</b>：命令行输入 <code>INKTABLE</code>，打开表格数据提取面板；</li>
+                            <li><b>框选目标对象</b>：点击【框选提取】，在 CAD 视口中框选原生 Table 表格实体，或由单行/多行文本构成的文字阵列；</li>
+                            <li><b>网格拓扑解析与预览</b>：程序解析单元格行、列结构、数值及文字内容，在对话框内以网格形式进行结构化预览；</li>
+                            <li><b>导出为标准 CSV</b>：点击【导出表格】，选择保存路径，生成标准 <code>.csv</code> 电子表格文件，方便在 Excel 中进行二次统计。</li>
+                        </ol>
+                    </div>
+                </article>
+
+                <!-- 2.6 SNAP -->
+                <article id="cs-snap">
+                    <h3>
+                        <span class="h3-title">
+                            <img src="Resources/CSNAP.png" onerror="if(this.src.indexOf('Shared/Resources')===-1)this.src='Shared/Resources/CSNAP.png';" alt="CSNAP" class="h3-icon" />
+                            2.6 视口截图与图像导出 (CAD Auto SNAP)
+                        </span>
+                        <span class="h3-tag">SNAP</span>
+                    </h3>
+                    <p>针对工程图纸汇报与技术交底的高清视口捕捉、矢量区域裁切与透明背景图片导出工具。</p>
+                    
+                    <div class="cmd-box">
+                        <span class="cmd-tag">CSNAP / INKSNAP</span>
+                        <span class="cmd-note">唤起截图主界面</span>
+                    </div>
+
+                    <div class="workflow-card">
+                        <div class="step-title"><i class="fa-solid fa-camera"></i> 截图导出管线：</div>
+                        <div class="workflow-steps">
+                            <div class="wf-node">
+                                <div class="wf-node-title"><i class="fa-solid fa-vector-square"></i> 选区模式</div>
+                                <div class="wf-node-desc">矩形窗口拉框 (W) / 拾取封闭图元或图块边界 (B)</div>
+                            </div>
+                            <div class="wf-arrow"><i class="fa-solid fa-arrow-right"></i></div>
+                            <div class="wf-node">
+                                <div class="wf-node-title"><i class="fa-solid fa-sliders"></i> 参数配置</div>
+                                <div class="wf-node-desc">透明通道 Alpha / 1x, 2x, 4x DPI 超采样放大</div>
+                            </div>
+                            <div class="wf-arrow"><i class="fa-solid fa-arrow-right"></i></div>
+                            <div class="wf-node">
+                                <div class="wf-node-title"><i class="fa-solid fa-copy"></i> 结果交付</div>
+                                <div class="wf-node-desc">直接写入系统剪贴板 (Ctrl+V 粘贴) / 本地文件保存</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="step-box">
+                        <div class="step-title"><i class="fa-solid fa-list-check"></i> 详细操作步骤与功能说明：</div>
+                        <ol class="step-list">
+                            <li><b>唤起截图 (<span class="ui-badge">CSNAP</span>)</b>：命令行输入 <code>CSNAP</code> 或 <code>INKSNAP</code>，打开截图面板；</li>
+                            <li><b>选择选区方式</b>：
+                                <ul>
+                                    <li><b>窗口框选模式 (W)</b>：在绘图区自由拖拽矩形框选定截取范围；</li>
+                                    <li><b>图元拾取模式 (B)</b>：直接拾取封闭多段线、圆、椭圆或复杂图块，系统自动计算几何包围盒作为裁切边界。</li>
+                                </ul>
+                            </li>
+                            <li><b>图像参数调节</b>：
+                                <ul>
+                                    <li><b>背景透明 (Alpha)</b>：勾选后剥离 CAD 背景底色，生成纯净透明底 PNG；</li>
+                                    <li><b>DPI 超采样</b>：支持 1x, 2x, 4x 超高清渲染输出，确保文字与细线条清晰度；</li>
+                                    <li><b>打印机自愈修复</b>：若当前图纸未初始化打印设备，程序后台自动绑定内置虚拟 PDF 设备后重试。</li>
+                                </ul>
+                            </li>
+                            <li><b>导出与复制</b>：点击【复制到剪贴板】可直接在聊天软件或 Word 中粘贴；点击【保存为图片】可导出为 PNG/JPEG 本地文件。</li>
+                        </ol>
+                    </div>
+                </article>
+
+                <!-- 2.7 SmartClean -->
+                <article id="cs-clean">
+                    <h3>
+                        <span class="h3-title">
+                            <img src="Resources/InkPurge.png" onerror="if(this.src.indexOf('Shared/Resources')===-1)this.src='Shared/Resources/InkPurge.png';" alt="InkPurge" class="h3-icon" />
+                            2.7 图纸数据库清理与维护 (CAD Auto SmartClean)
+                        </span>
+                        <span class="h3-tag">SmartClean</span>
+                    </h3>
+                    <p>针对图纸文件体积膨胀、运行卡顿以及外部引用残留数据的分阶段系统级深度清理与修复工具。</p>
+                    
+                    <div class="cmd-box">
+                        <span class="cmd-tag">INKPURGE</span>
+                        <span class="cmd-note">执行图纸分阶段深度清理流水线</span>
+                    </div>
+
+                    <div class="doc-img-container">
+                        <img src="Resources/docs/Cleanhelp.png" onerror="if(this.src.indexOf('Shared/Resources')===-1)this.src='Shared/Resources/docs/Cleanhelp.png';" alt="图纸深度清理控制面板" />
+                        <div class="doc-img-caption">图 2.4 - 图纸清理阶段配置与状态反馈</div>
+                    </div>
+
+                    <div class="step-box">
+                        <div class="step-title"><i class="fa-solid fa-list-check"></i> 5 阶段深度清理流水线：</div>
+                        <ol class="step-list">
+                            <li><b>启动清理 (<span class="ui-badge">INKPURGE</span>)</b>：命令行输入 <code>INKPURGE</code>，程序自动进入清理管线；</li>
+                            <li><b>Phase 0 - 自动备份</b>：清理前自动在图纸同目录下创建 <code>*.dwg</code> 安全副本，规避误操作风险；</li>
+                            <li><b>Phase 1 - 空间无效实体清理</b>：自动检索并清除内容为空白的文字实体 (DBText/MText) 以及长度极小 (&lt; 1e-6) 的无效短线；</li>
+                            <li><b>Phase 2 - DGN 残留字典与过滤器清理</b>：清除外部导入图纸残留的 <code>ACAD_DGNLINESTYLECOMP</code> 复合线型字典和冗余图层过滤器，解决复制粘贴卡顿；</li>
+                            <li><b>Phase 3 - 递归多轮级联清理</b>：最多执行 10 轮递归级联 Purge，清除非引用的块定义、空图层、孤立线型、文字与标注样式；</li>
+                            <li><b>Phase 4 - 比例列表重置与 Audit 修复</b>：重置注释比例列表 (<code>_-scalelistedit</code>)，并在后台静默触发 <code>_audit</code> 修复图纸底层数据库拓扑错误，最后输出统计报告。</li>
+                        </ol>
+                    </div>
+                </article>
+
+                <!-- 2.8 VlxSuite -->
+                <article id="cs-lisp">
+                    <h3>
+                        <span class="h3-title">
+                            <img src="Resources/About.png" onerror="if(this.src.indexOf('Shared/Resources')===-1)this.src='Shared/Resources/About.png';" alt="About" class="h3-icon" />
+                            2.8 LISP 插件管理与维护 (CAD Auto VlxSuite)
+                        </span>
+                        <span class="h3-tag">VlxSuite</span>
+                    </h3>
+                    <p>面向 AutoLISP/VLX 脚本的集中管理、快速调度、热重载与沙盒安全调测控制台。</p>
+                    
+                    <div class="cmd-box">
+                        <span class="cmd-tag">INKLISPMANAGER / INKRESTOREPLUGINS</span>
+                        <span class="cmd-note">呼出 LISP 控制台 (别名: LispManager) / 一键恢复默认插件</span>
+                    </div>
+
+                    <div class="step-box">
+                        <div class="step-title"><i class="fa-solid fa-list-check"></i> 详细操作步骤与功能说明：</div>
+                        <ol class="step-list">
+                            <li><b>唤起控制台 (<span class="ui-badge">INKLISPMANAGER</span>)</b>：命令行输入 <code>INKLISPMANAGER</code>，或在功能区点击【插件控制台】按钮；</li>
+                            <li><b>脚本扫描与浏览</b>：系统自动扫描 <code>Shared\VLX</code> 目录下的所有 <code>.vlx</code> 与 <code>.lsp</code> 插件，左侧列表直观展示插件名称与当前状态；</li>
+                            <li><b>一键运行与参数查看</b>：点击列表中任意插件，右侧显示说明信息及包含的命令列表，点击【运行】即可直接在 CAD 当前视口触发该命令；</li>
+                            <li><b>动态热重载 (Hot-Reload)</b>：修改 VLX/LISP 脚本后，点击【强制重载】按钮，程序即刻重新加载脚本，无需重启 AutoCAD；</li>
+                            <li><b>添加外部自定义插件</b>：点击【添加外部插件】，选择本地的 <code>.vlx</code> 或 <code>.lsp</code> 文件，系统自动复制到共享目录并登记；</li>
+                            <li><b>沙盒安全防护</b>：内置 <code>vl-catch-all-apply</code> 异常拦截沙盒，第三方脚本发生错误时自动捕获异常并恢复全局环境变量（如 <code>OSMODE</code>、<code>CMDECHO</code>）。</li>
+                        </ol>
+                    </div>
+                </article>
+
+                <!-- 2.9 About & Menu Reset -->
+                <article id="cs-about">
+                    <h3>
+                        <span class="h3-title">
+                            <i class="fa-solid fa-circle-info" style="color: var(--primary-light);"></i>
+                            2.9 关于、手册与界面恢复
+                        </span>
+                        <span class="h3-tag">System</span>
+                    </h3>
+                    <p>系统版本信息查看、本地离线手册查阅以及 AutoCAD 工作空间重置后的界面快速恢复。</p>
+                    
+                    <div class="cmd-box">
+                        <span class="cmd-tag">INKABOUT / INKHELP / INKMENU / INKRIBBON</span>
+                        <span class="cmd-note">系统维护命令集</span>
+                    </div>
+
+                    <div class="step-box">
+                        <div class="step-title"><i class="fa-solid fa-list-check"></i> 详细说明：</div>
+                        <ol class="step-list">
+                            <li><code>INKABOUT</code>：打开关于面板，查看当前墨语 X 版本号、AutoCAD 宿主版本与底层 .NET 运行时状态；</li>
+                            <li><code>INKHELP</code>：在默认浏览器中直接打开本离线图文手册 (<code>Readme.html</code>)；</li>
+                            <li><code>INKMENU</code>：当 AutoCAD 切换工作空间导致顶部“墨语 X”经典菜单栏丢失时，输入此命令可一键重新构建并恢复；</li>
+                            <li><code>INKRIBBON</code>：重新刷新并恢复 Ribbon 功能区中的“墨语 X”选项卡。</li>
+                        </ol>
+                    </div>
+                </article>
+            </section>
+
+            <!-- ================= VLX 扩展插件库 ================= -->
+            <section id="vlx-suite">
+                <h2><i class="fa-solid fa-cubes"></i> 3. VLX 扩展工具库使用说明</h2>
+
+                <!-- 3.1 ZBBZ -->
+                <article id="vlx-zbbz">
+                    <h3>
+                        <span class="h3-title">
+                            <img src="Resources/Coord.png" onerror="if(this.src.indexOf('Shared/Resources')===-1)this.src='Shared/Resources/Coord.png';" alt="Coord" class="h3-icon" />
+                            3.1 ZBBZ - 坐标高程综合标注系统
+                        </span>
+                        <span class="h3-tag">ZBBZ</span>
+                    </h3>
+                    <p>轻量高效的坐标与高程标注工具。支持单点动态拖拽标注、批量图元避让标注以及一键提取坐标成果表。</p>
+                    
+                    <div class="cmd-box">
+                        <span class="cmd-tag">ZBBZ / PLBZ / SCTB / ZBSZ</span>
+                        <span class="cmd-note">快捷别名: InkZBBZ / InkPLBZ / InkSCTB / InkZBSZ</span>
+                    </div>
+
+                    <div class="doc-img-container">
+                        <img src="Resources/docs/ZBBZ-G_setting_ui.png" onerror="if(this.src.indexOf('Shared/Resources')===-1)this.src='Shared/Resources/docs/ZBBZ-G_setting_ui.png';" alt="ZBBZ 坐标高程设置面板" />
+                        <div class="doc-img-caption">图 3.1 - ZBBZ 坐标高程标注参数控制面板</div>
+                    </div>
+
+                    <div class="step-box">
+                        <div class="step-title"><i class="fa-solid fa-list-check"></i> 详细操作步骤与功能说明：</div>
+                        <ol class="step-list">
+                            <li><b>单点动态标注 (<span class="ui-badge">ZBBZ</span> / <span class="ui-badge">InkZBBZ</span>)</b>：
+                                <ul>
+                                    <li>输入 <code>ZBBZ</code>，鼠标在视口中移动时坐标数值与引线实时跟随预览，点击确定标注位置；</li>
+                                    <li>标注过程中可按快捷键 <code>S</code> 进入设置面板，或按 <code>Q</code> 切换至批量模式。</li>
+                                </ul>
+                            </li>
+                            <li><b>批量自动标注与智能避让 (<span class="ui-badge">PLBZ</span> / <span class="ui-badge">InkPLBZ</span>)</b>：
+                                <ul>
+                                    <li>输入 <code>PLBZ</code>，框选多段线节点、点实体、圆心或图块插入点；</li>
+                                    <li>系统启动 8 向文字智能避让算法，防止文字重叠，批量生成标注。</li>
+                                </ul>
+                            </li>
+                            <li><b>生成坐标成果表 (<span class="ui-badge">SCTB</span> / <span class="ui-badge">InkSCTB</span>)</b>：
+                                <ul>
+                                    <li>输入 <code>SCTB</code>，框选已生成的标注对象，指定插入点即可生成 CAD 原生 Table 表格或导出为 CSV 数据文件。</li>
+                                </ul>
+                            </li>
+                            <li><b>全局坐标参数控制 (<span class="ui-badge">ZBSZ</span> / <span class="ui-badge">InkZBSZ</span>)</b>：
+                                <ul>
+                                    <li>输入 <code>ZBSZ</code> 呼出参数面板，支持切换 <code>X, Y, Z</code> / <code>N, E, H</code> 前缀，支持 WCS/UCS 坐标系切换与基点旋转设置。</li>
+                                </ul>
+                            </li>
+                        </ol>
+                    </div>
+                </article>
+
+                <!-- 3.2 BHSX -->
+                <article id="vlx-bhsx">
+                    <h3>
+                        <span class="h3-title">
+                            <img src="Resources/Numbering.png" onerror="if(this.src.indexOf('Shared/Resources')===-1)this.src='Shared/Resources/Numbering.png';" alt="Numbering" class="h3-icon" />
+                            3.2 BHSX - 智能编号速写系统
+                        </span>
+                        <span class="h3-tag">BHSX</span>
+                    </h3>
+                    <p>支持单点动态连续编号、多图元智能排版编号，以及自动提取图内编号生成点位坐标成果表。</p>
+                    
+                    <div class="cmd-box">
+                        <span class="cmd-tag">BHSX / BHTB</span>
+                        <span class="cmd-note">快捷别名: InkBHSX / InkBHTB</span>
+                    </div>
+
+                    <div class="doc-img-container">
+                        <img src="Resources/docs/BHSX_setting_ui.png" onerror="if(this.src.indexOf('Shared/Resources')===-1)this.src='Shared/Resources/docs/BHSX_setting_ui.png';" alt="BHSX 智能编号设置界面" />
+                        <div class="doc-img-caption">图 3.2 - BHSX 智能编号参数与排序规则控制面板</div>
+                    </div>
+
+                    <div class="step-box">
+                        <div class="step-title"><i class="fa-solid fa-list-check"></i> 详细操作步骤与功能说明：</div>
+                        <ol class="step-list">
+                            <li><b>智能编号设置 (<span class="ui-badge">BHSX</span> / <span class="ui-badge">InkBHSX</span>)</b>：
+                                <ul>
+                                    <li>输入 <code>BHSX</code> 呼出控制面板，设置前缀、后缀、初值（支持数字或英文字母）与递增步长；</li>
+                                    <li>外观样式支持无边框、圆形、椭圆形、矩形等多种外框与引线形式。</li>
+                                </ul>
+                            </li>
+                            <li><b>5 种自动空间排序算法</b>：
+                                <ul>
+                                    <li>批量排版模式支持 5 种排序规则：①最短路径遍历、②从上到下/从左到右、③从左到右/从上到下、④拾取原始顺序、⑤沿选定多段线顺延。</li>
+                                </ul>
+                            </li>
+                            <li><b>提取成果表格 (<span class="ui-badge">BHTB</span> / <span class="ui-badge">InkBHTB</span>)</b>：
+                                <ul>
+                                    <li>输入 <code>BHTB</code> 框选图纸中的编号块，程序自动提取点号与 X, Y 坐标并插入原生表格。</li>
+                                </ul>
+                            </li>
+                        </ol>
+                    </div>
+                </article>
+
+                <!-- 3.3 ZCD -->
+                <article id="vlx-zcd">
+                    <h3>
+                        <span class="h3-title">
+                            <img src="Resources/Length.png" onerror="if(this.src.indexOf('Shared/Resources')===-1)this.src='Shared/Resources/Length.png';" alt="Length" class="h3-icon" />
+                            3.3 ZCD - 长度统计标注工具
+                        </span>
+                        <span class="h3-tag">ZCD</span>
+                    </h3>
+                    <p>专为工程制图研发的线元长度测量统计与分项标注工具，内置无缝单位换算与原生表格插入。</p>
+                    
+                    <div class="cmd-box">
+                        <span class="cmd-tag">ZCD</span>
+                        <span class="cmd-note">快捷别名: InkZCD</span>
+                    </div>
+
+                    <div class="doc-img-container">
+                        <img src="Resources/docs/ZCD_setting_ui.png" onerror="if(this.src.indexOf('Shared/Resources')===-1)this.src='Shared/Resources/docs/ZCD_setting_ui.png';" alt="ZCD 长度统计控制面板" />
+                        <div class="doc-img-caption">图 3.3 - ZCD 长度统计参数与单位换算控制面板</div>
+                    </div>
+
+                    <div class="step-box">
+                        <div class="step-title"><i class="fa-solid fa-list-check"></i> 详细操作步骤与功能说明：</div>
+                        <ol class="step-list">
+                            <li><b>启动与单位设置 (<span class="ui-badge">ZCD</span> / <span class="ui-badge">InkZCD</span>)</b>：
+                                <ul>
+                                    <li>输入 <code>ZCD</code> 打开面板，设置图纸原生单位 (mm/m) 与目标输出单位 (mm/cm/m/km)，程序自动计算折算比例。</li>
+                                </ul>
+                            </li>
+                            <li><b>17 种几何图元混合框选</b>：
+                                <ul>
+                                    <li>框选直线、多段线、三维多段线、样条曲线、圆弧、椭圆或多线 (MLINE)，毫秒级完成几何长度聚合计算。</li>
+                                </ul>
+                            </li>
+                            <li><b>分项序号引线与表达合成</b>：
+                                <ul>
+                                    <li>在线条中心自动标注分项序号（如 ①②③），并在总引线位置生成合成表达式（如 <code>① + ② = 128.5 m</code>）。</li>
+                                </ul>
+                            </li>
+                            <li><b>插入统计表格</b>：
+                                <ul>
+                                    <li>命令行提示是否插入表格，输入 <code>Y</code> 并指定点，即可直接插入包含图层、线型、分项长度与总长汇总的 CAD 原生 Table 表格。</li>
+                                </ul>
+                            </li>
+                        </ol>
+                    </div>
+                </article>
+
+                <!-- 3.4 CZTH -->
+                <article id="vlx-czth">
+                    <h3>
+                        <span class="h3-title">
+                            <img src="Resources/Replace.png" onerror="if(this.src.indexOf('Shared/Resources')===-1)this.src='Shared/Resources/Replace.png';" alt="Replace" class="h3-icon" />
+                            3.4 CZTH - 文本与数据替换系统
+                        </span>
+                        <span class="h3-tag">CZTH</span>
+                    </h3>
+                    <p>文本替换与批量改写工具，集成标准通配符与测绘高级数值运算双引擎，支持块属性与 Z 坐标联动。</p>
+                    
+                    <div class="cmd-box">
+                        <span class="cmd-tag">CZTH / CZTH-RESET</span>
+                        <span class="cmd-note">主向导 / 重置规则缓存 (快捷别名: InkCZTH / InkCZTHReset)</span>
+                    </div>
+
+                    <div class="doc-img-container">
+                        <img src="Resources/docs/CZTH_setting_ui.png" onerror="if(this.src.indexOf('Shared/Resources')===-1)this.src='Shared/Resources/docs/CZTH_setting_ui.png';" alt="CZTH 替换设置面板" />
+                        <div class="doc-img-caption">图 3.4 - CZTH 文本替换与测绘高级数值运算面板</div>
+                    </div>
+
+                    <div class="step-box">
+                        <div class="step-title"><i class="fa-solid fa-list-check"></i> 详细操作步骤与功能说明：</div>
+                        <ol class="step-list">
+                            <li><b>启动与选区 (<span class="ui-badge">CZTH</span> / <span class="ui-badge">InkCZTH</span>)</b>：输入 <code>CZTH</code>，可选择全图扫描或局部框选目标文字；</li>
+                            <li><b>双引擎替换规则</b>：
+                                <ul>
+                                    <li><b>普通文本模式</b>：支持通配符 (<code>*</code>, <code>?</code>, <code>#</code>, <code>@</code>) 与全字匹配；</li>
+                                    <li><b>测绘数值模式</b>：输入 <code>=12.5</code> 强制赋值；<code>±0.05</code> 叠加对称公差；<code>0.01~0.05</code> 区间随机浮动；<code>++0.5</code> 线性顺延递增；<code>+0.1</code> / <code>*1.1</code> 算术运算。</li>
+                                </ul>
+                            </li>
+                            <li><b>三维高程联动</b>：修改属性块内文本时，可勾选同步联动修改母块的真实 Z 轴高程坐标；</li>
+                            <li><b>对比预览与日志</b>：扫场后在列表中展示修改前与修改后对比效果，点击条目在视口居中高亮，执行完毕可导出对比日志；</li>
+                            <li><b>重置缓存 (<span class="ui-badge">CZTH-RESET</span>)</b>：输入 <code>CZTH-RESET</code> 可一键清空历史规则并恢复出厂默认。</li>
+                        </ol>
+                    </div>
+                </article>
+
+                <!-- 3.5 XZH -->
+                <article id="vlx-xzh">
+                    <h3>
+                        <span class="h3-title">
+                            <img src="Resources/Convert.png" onerror="if(this.src.indexOf('Shared/Resources')===-1)this.src='Shared/Resources/Convert.png';" alt="Convert" class="h3-icon" />
+                            3.5 XZH - 全能线清洗转换系统
+                        </span>
+                        <span class="h3-tag">XZH</span>
+                    </h3>
+                    <p>高效图元清洗与格式统一插件，支持将 17 种不同类型线元自动路由清洗并转换为轻量多段线、面域或编组。</p>
+                    
+                    <div class="cmd-box">
+                        <span class="cmd-tag">XZH</span>
+                        <span class="cmd-note">启动转换控制面板 (快捷别名: InkXZH)</span>
+                    </div>
+
+                    <div class="doc-img-container">
+                        <img src="Resources/docs/XZH_setting_ui.png" onerror="if(this.src.indexOf('Shared/Resources')===-1)this.src='Shared/Resources/docs/XZH_setting_ui.png';" alt="XZH 线转换控制面板" />
+                        <div class="doc-img-caption">图 3.5 - XZH 图元清洗分类与格式转换面板</div>
+                    </div>
+
+                    <div class="step-box">
+                        <div class="step-title"><i class="fa-solid fa-list-check"></i> 详细操作步骤与功能说明：</div>
+                        <ol class="step-list">
+                            <li><b>选择图元 (<span class="ui-badge">XZH</span> / <span class="ui-badge">InkXZH</span>)</b>：框选目标图元后输入 <code>XZH</code>，支持直线、圆弧、样条曲线、螺旋线、多线 (MLINE) 等；</li>
+                            <li><b>几何分类统计</b>：面板自动按图层与图元类型统计数量，并计算所选对象的总长度与总面积；</li>
+                            <li><b>选择转换格式</b>：
+                                <ul>
+                                    <li><b>LWPolyline (轻量多段线)</b> [推荐]：将线元清洗并无缝拼接为连续多段线；</li>
+                                    <li><b>Region (闭合面域)</b>：自动校验闭合状态并转换为面域；</li>
+                                    <li><b>Group (图元编组)</b>：将散乱线元打散清洗后统一编组。</li>
+                                </ul>
+                            </li>
+                            <li><b>执行转换</b>：点击【确定】，系统自动完成几何路由拼接与杂线清理。</li>
+                        </ol>
+                    </div>
+                </article>
+
+                <!-- 3.6 XZX -->
+                <article id="vlx-xzx">
+                    <h3>
+                        <span class="h3-title">
+                            <img src="Resources/Matrix.png" onerror="if(this.src.indexOf('Shared/Resources')===-1)this.src='Shared/Resources/Matrix.png';" alt="Matrix" class="h3-icon" />
+                            3.6 XZX - 泛型图元转换矩阵
+                        </span>
+                        <span class="h3-tag">XZX</span>
+                    </h3>
+                    <p>图元批量重构与参数化生成工具。支持根据几何中心重构标准形状、自适应包围盒与闭合诊断偏移。</p>
+                    
+                    <div class="cmd-box">
+                        <span class="cmd-tag">XZX</span>
+                        <span class="cmd-note">执行转换矩阵主命令 (快捷别名: InkXZX)</span>
+                    </div>
+
+                    <div class="doc-img-container">
+                        <img src="Resources/docs/XZX_setting_ui.png" onerror="if(this.src.indexOf('Shared/Resources')===-1)this.src='Shared/Resources/docs/XZX_setting_ui.png';" alt="XZX 转换矩阵控制面板" />
+                        <div class="doc-img-caption">图 3.6 - XZX 泛型转换参数与闭合诊断面板</div>
+                    </div>
+
+                    <div class="step-box">
+                        <div class="step-title"><i class="fa-solid fa-list-check"></i> 详细操作步骤与功能说明：</div>
+                        <ol class="step-list">
+                            <li><b>拾取与同类提取 (<span class="ui-badge">XZX</span> / <span class="ui-badge">InkXZX</span>)</b>：输入 <code>XZX</code>，可常规框选，亦可开启“同类提取”（点击单图元即自动选中同图层所有同类对象）；</li>
+                            <li><b>模式选择与参数配置</b>：
+                                <ul>
+                                    <li><b>重构形状模式</b>：下拉选择目标几何体（圆、矩形、外接包围盒、正多边形、十字星、心形），输入长宽或半径；</li>
+                                    <li><b>批量偏移模式</b>：指定偏移距离，设置向外或向内方向。</li>
+                                </ul>
+                            </li>
+                            <li><b>闭合诊断与安全策略</b>：
+                                <ul>
+                                    <li>面板可诊断图元闭合状态，若包含发散线条，可选择：①全部转换、②仅转闭合图形、③仅转未闭合图形；</li>
+                                </ul>
+                            </li>
+                            <li><b>合并输出</b>：勾选【合并并封闭目标】，阵列结果将自动合并为闭合多段线并放置于专用图层。</li>
+                        </ol>
+                    </div>
+                </article>
+            </section>
+
+            <!-- 4. CAD 版本兼容支持表 -->
+            <section id="compatibility">
+                <h2><i class="fa-solid fa-desktop"></i> 4. AutoCAD 版本兼容支持表</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>CAD 世代标识</th>
+                            <th>支持 AutoCAD 版本范围</th>
+                            <th>底层 Target Framework</th>
+                            <th>UI 技术与运行状态</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><b>R17</b></td>
+                            <td>AutoCAD 2007 ~ 2009 (32/64-bit)</td>
+                            <td>.NET 3.5 (net35)</td>
+                            <td class="status-ok">[完全兼容] WinForms</td>
+                        </tr>
+                        <tr>
+                            <td><b>R18</b></td>
+                            <td>AutoCAD 2010 ~ 2012 (32/64-bit)</td>
+                            <td>.NET 3.5 (net35)</td>
+                            <td class="status-ok">[完全兼容] WinForms</td>
+                        </tr>
+                        <tr>
+                            <td><b>R19</b></td>
+                            <td>AutoCAD 2013 ~ 2014 (32/64-bit)</td>
+                            <td>.NET 4.0 / 4.5 (net45)</td>
+                            <td class="status-ok">[完全兼容] WinForms + Ribbon</td>
+                        </tr>
+                        <tr>
+                            <td><b>R20</b></td>
+                            <td>AutoCAD 2015 ~ 2016 (32/64-bit)</td>
+                            <td>.NET 4.5.2 (net45)</td>
+                            <td class="status-ok">[完全兼容] WinForms + Ribbon</td>
+                        </tr>
+                        <tr>
+                            <td><b>R21</b></td>
+                            <td>AutoCAD 2017 (32/64-bit)</td>
+                            <td>.NET 4.6 (net46)</td>
+                            <td class="status-ok">[完全兼容] WinForms + Ribbon</td>
+                        </tr>
+                        <tr>
+                            <td><b>R22</b></td>
+                            <td>AutoCAD 2018 (64-bit)</td>
+                            <td>.NET 4.7 (net47)</td>
+                            <td class="status-ok">[完全兼容] WinForms + Ribbon</td>
+                        </tr>
+                        <tr>
+                            <td><b>R23</b></td>
+                            <td>AutoCAD 2019 ~ 2020 (64-bit)</td>
+                            <td>.NET 4.7.2 (net47)</td>
+                            <td class="status-ok">[完全兼容] WinForms + Modern WPF</td>
+                        </tr>
+                        <tr>
+                            <td><b>R24</b></td>
+                            <td>AutoCAD 2021 ~ 2024 (64-bit)</td>
+                            <td>.NET 4.8 (net48)</td>
+                            <td class="status-ok">[完全兼容] WinForms + Modern WPF</td>
+                        </tr>
+                        <tr>
+                            <td><b>R25</b></td>
+                            <td>AutoCAD 2025 ~ 2026 (64-bit)</td>
+                            <td>.NET 8.0 Windows (net8.0-windows)</td>
+                            <td class="status-ok">[完全兼容] CoreCLR Modern WPF / C# 12</td>
+                        </tr>
+                        <tr>
+                            <td><b>R26</b></td>
+                            <td>AutoCAD 2027+ (64-bit)</td>
+                            <td>.NET 10.0 Windows (net10.0-windows)</td>
+                            <td class="status-ok">[完全兼容] Next-Gen .NET 10 / C# 13</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </section>
+
+            <!-- 5. FAQ 常见问题解答 -->
+            <section id="faq">
+                <h2><i class="fa-solid fa-circle-question"></i> 5. 常见问题解答 (FAQ)</h2>
+                
+                <div class="faq-item">
+                    <div class="faq-q"><i class="fa-solid fa-circle-info"></i> Q1: 在旧版本 AutoCAD (如 2008 / 2012) 中，启动后命令行提示“未知命令”怎么办？</div>
+                    <div class="faq-a">A: 墨语 X 在安装时会自动将插件注册到 AutoCAD 的注册表中。如果由于系统安全策略或绿色版 CAD 导致未自动加载，请在 CAD 命令行输入 <code>NETLOAD</code> 命令，浏览并选择对应版本目录中的 <code>Plugins\InkVerseX.dll</code>（例如 AutoCAD 2008 选择 <code>{安装目录}\R17\Plugins\InkVerseX.dll</code>，AutoCAD 2022 选择 <code>{安装目录}\R24\Plugins\InkVerseX.dll</code>）手动加载一次即可。</div>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-q"><i class="fa-solid fa-circle-info"></i> Q2: 为什么提示“找不到 pdfium.dll”或 PDF 截图失败？</div>
+                    <div class="faq-a">A: 墨语 X 采用了共享资产库架构，<code>pdfium.dll</code> 位于安装目录下的 <code>Shared\x86</code> 或 <code>Shared\x64</code> 文件夹中。请确认未手动删除插件安装目录下的 <code>Shared</code> 文件夹。若移动过，请恢复原位或重新运行安装向导。</div>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-q"><i class="fa-solid fa-circle-info"></i> Q3: 频繁弹出“安全警告：未签名的高级可信路径”如何解决？</div>
+                    <div class="faq-a">A: 安装程序在安装时会自动将安装目录添加到 CAD 的受信任路径中。若仍弹出警告，可手动打开 AutoCAD“选项 (<code>OP</code>) -> 文件 -> 受信任的位置”，添加安装目录根路径（如 <code>%APPDATA%\InkVerseX\...</code>）并点击应用。</div>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-q"><i class="fa-solid fa-circle-info"></i> Q4: 经典工具栏没有显示图标，或者图标变成了一个问号？</div>
+                    <div class="faq-a">A: 工具栏图标文件位于 <code>{安装目录}\Shared\Resources</code> 中。请打开 AutoCAD“选项 (<code>OP</code>) -> 文件 -> 支持文件搜索路径”，检查并确认是否已包含该 <code>Resources</code> 路径。随后在命令行输入 <code>INKMENU</code> 即可重新恢复。</div>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-q"><i class="fa-solid fa-circle-info"></i> Q5: VLX 插件无法加载或提示 plugins.json 错误？</div>
+                    <div class="faq-a">A: 可在命令行输入 <code>INKLISPMANAGER</code> 打开控制台，点击【强制重载】。程序会自动重新扫描 <code>Shared\VLX</code> 目录下的所有插件文件并重构配置文件。</div>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-q"><i class="fa-solid fa-circle-info"></i> Q6: 在 3D 视角或 UCS 自定义坐标系下，标注或编号位置错乱怎么办？</div>
+                    <div class="faq-a">A: 使用 <code>ZBBZ</code> 或 <code>BHSX</code> 时，如果位于三维视图中，可以在命令控制面板中将坐标系选项切回 <code>WCS (世界坐标系)</code>，或输入 <code>PLAN</code> 命令将视图重置为二维平面。</div>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-q"><i class="fa-solid fa-circle-info"></i> Q7: 卸载墨语 X 时，图纸中已生成的标注和图框会丢失或损坏吗？</div>
+                    <div class="faq-a">A: 不会。墨语 X 生成的所有图框、表格与坐标标注均基于 AutoCAD 原生图块 (Block)、多段线 (Polyline) 与表格 (Table) 对象构建，不创建第三方自定义代理实体，即使卸载插件，图纸在任意纯净 AutoCAD 环境中依然保持完整。</div>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-q"><i class="fa-solid fa-circle-info"></i> Q8: 如何彻底卸载墨语 X 并清除配置？</div>
+                    <div class="faq-a">A: 在 Windows 控制面板中找到“墨语 X”，执行标准卸载程序。卸载程序会自动从 AutoCAD 注册表中清理加载项与受信任路径配置。</div>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-q"><i class="fa-solid fa-circle-info"></i> Q9: 智能输入法切换 (CAD Auto IME) 在部分第三方输入法下无响应怎么办？</div>
+                    <div class="faq-a">A: 墨语 X 支持微软拼音、微信输入法、搜狗输入法、手心输入法等。请在命令行输入 <code>CUSTOMAUTOIME</code> 打开配置面板，确认当前输入法驱动选择正确，并确保输入法软件自身的“快捷键中英文切换”设置为默认的 Shift 键。</div>
+                </div>
+            </section>
+
+            <!-- 作者与反馈 -->
+            <section id="contact">
+                <footer class="footer">
+                    <p>墨语 X (InkVerse X) · 作者：<b>浅醉·墨语 (Andy_127)</b></p>
+                    <p>联系方式：QQ: 806894478 | Email: ypj127@163.com</p>
+                    <div style="margin: 20px auto; max-width: 520px; background: #ffffff; padding: 12px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08); border: 1px solid var(--border-color);">
+                        <img src="Resources/docs/Contact.png" onerror="if(this.src.indexOf('Shared/Resources')===-1)this.src='Shared/Resources/docs/Contact.png';" alt="联系与打赏二维码" style="width: 100%; height: auto; display: block; border-radius: 8px;" />
+                    </div>
+                    <a href="https://github.com/Andyang127/InkVerseX" target="_blank" class="btn-more"><i class="fa-brands fa-github"></i> 访问 GitHub 项目仓库</a>
+                </footer>
+            </section>
+        </main>
+    </div>
+</body>
+</html>
