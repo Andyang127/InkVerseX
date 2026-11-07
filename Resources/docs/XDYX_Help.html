@@ -1,0 +1,1584 @@
+<!DOCTYPE html>
+<html lang="zh-CN" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>XDYX 修订云线批注系统 v0.1 - 技术与使用手册</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Microsoft YaHei"', '"PingFang SC"', 'Inter', 'system-ui', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'Consolas', '"Courier New"', 'monospace'],
+          },
+          colors: {
+            cad: {
+              bg: '#13161c',
+              panel: '#1b1f27',
+              canvas: '#0b0d12',
+              border: '#2c3340',
+              accent: '#3b82f6',
+              cyan: '#00ffff',
+              red: '#ff3b3b',
+              yellow: '#ffff00',
+              green: '#00ff00',
+              magenta: '#ff00ff'
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    /* Custom scrollbars & CAD grid background */
+    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    ::-webkit-scrollbar-track { background: rgba(15, 23, 42, 0.4); }
+    ::-webkit-scrollbar-thumb { background: rgba(100, 116, 139, 0.5); border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(148, 163, 184, 0.8); }
+
+    .cad-grid {
+      background-color: #0b0e14;
+      background-image:
+        linear-gradient(to right, rgba(59, 130, 246, 0.07) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(59, 130, 246, 0.07) 1px, transparent 1px),
+        linear-gradient(to right, rgba(59, 130, 246, 0.14) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(59, 130, 246, 0.14) 1px, transparent 1px);
+      background-size: 20px 20px, 20px 20px, 100px 100px, 100px 100px;
+    }
+
+    /* Classic AutoCAD Windows DCL Dialog Simulation */
+    .dcl-window {
+      background-color: #f0f0f0;
+      color: #111827;
+      border: 2px solid #888;
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45), inset 1px 1px 0 #fff;
+      font-family: "Microsoft YaHei", SimSun, sans-serif;
+      font-size: 12px;
+      user-select: none;
+    }
+    .dcl-titlebar {
+      background: linear-gradient(90deg, #1e3a8a 0%, #2563eb 100%);
+      color: #ffffff;
+      padding: 5px 10px;
+      font-weight: 600;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12px;
+    }
+    .dcl-fieldset {
+      border: 1px solid #b5b5b5;
+      box-shadow: inset 1px 1px 0 #ffffff, 1px 1px 0 #ffffff;
+      padding: 8px 8px 6px 8px;
+      margin-bottom: 8px;
+      position: relative;
+      border-radius: 2px;
+    }
+    .dcl-legend {
+      font-size: 11px;
+      color: #1f2937;
+      font-weight: 600;
+      padding: 0 4px;
+    }
+    .dcl-input {
+      background: #ffffff;
+      border: 1px solid #7f9db9;
+      box-shadow: inset 1px 1px 2px rgba(0,0,0,0.1);
+      padding: 2px 5px;
+      font-size: 12px;
+      color: #111;
+      border-radius: 1px;
+    }
+    .dcl-input:disabled {
+      background: #e5e7eb;
+      color: #6b7280;
+    }
+    .dcl-btn {
+      background: linear-gradient(180deg, #fcfcfc 0%, #e0e0e0 100%);
+      border: 1px solid #707070;
+      box-shadow: inset 1px 1px 0 #fff;
+      padding: 2px 8px;
+      font-size: 11px;
+      color: #111;
+      cursor: pointer;
+      border-radius: 2px;
+      transition: all 0.1s;
+    }
+    .dcl-btn:hover {
+      background: linear-gradient(180deg, #eaf6fd 0%, #bee6fd 100%);
+      border-color: #3c7fb1;
+    }
+    .dcl-btn:active {
+      background: #d5e1e7;
+      transform: translateY(1px);
+    }
+
+    @media print {
+      .no-print { display: none !important; }
+      body, html { background: #ffffff !important; color: #000000 !important; }
+      .print-break { page-break-before: always; }
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 dark:bg-cad-bg dark:text-slate-200 antialiased selection:bg-blue-600 selection:text-white transition-colors duration-200">
+
+  <!-- Top Navigation Bar -->
+  <header class="sticky top-0 z-40 backdrop-blur-md bg-white/90 dark:bg-cad-panel/90 border-b border-slate-200 dark:border-cad-border no-print">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-lg bg-blue-600/10 dark:bg-blue-500/20 border border-blue-500/40 flex items-center justify-center text-blue-600 dark:text-blue-400">
+          <!-- Revision Cloud Icon -->
+          <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M5 9a3 3 0 0 1 4-2.5A3.5 3.5 0 0 1 15.5 6a3 3 0 0 1 3.5 3.5 3 3 0 0 1 0 5.5 3.5 3.5 0 0 1-5 2.5 3.5 3.5 0 0 1-6 0A3 3 0 0 1 4 14.5 3 3 0 0 1 5 9z" stroke-linejoin="round"/>
+            <path d="M16 16l4 4m0 0h4" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 class="text-base sm:text-lg font-bold tracking-tight text-slate-900 dark:text-white">XDYX 修订云线批注系统</h1>
+            <span class="px-2 py-0.5 text-xs font-mono font-semibold rounded bg-blue-600 text-white">v0.1</span>
+            <span class="hidden md:inline-block px-2 py-0.5 text-xs font-mono rounded bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30">AutoCAD 2007 - 2027 全兼容</span>
+          </div>
+          <p class="text-xs text-slate-500 dark:text-slate-400">工程制图审图批注、布尔多云线合并与校审表自动汇总插件</p>
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div class="flex items-center gap-2 sm:gap-3">
+        <button onclick="toggleTheme()" class="p-2 rounded-lg border border-slate-300 dark:border-cad-border bg-slate-100 dark:bg-slate-800/80 text-slate-700 dark:text-slate-200 hover:border-blue-500 text-xs flex items-center gap-1.5 transition" title="切换深浅色主题">
+          <svg id="theme-icon-dark" class="w-4 h-4 hidden dark:inline" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+          <svg id="theme-icon-light" class="w-4 h-4 inline dark:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>
+          <span class="hidden sm:inline" id="theme-label">浅色文档</span>
+        </button>
+        <button onclick="window.print()" class="px-3 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-xs font-medium flex items-center gap-1.5 shadow-sm transition">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+          <span>打印 / 导出 PDF</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex flex-col lg:flex-row gap-8">
+
+    <!-- Left Sticky Sidebar Navigation -->
+    <aside class="lg:w-60 shrink-0 no-print">
+      <nav class="sticky top-24 space-y-1 bg-white dark:bg-cad-panel p-4 rounded-xl border border-slate-200 dark:border-cad-border shadow-sm">
+        <div class="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 px-3 pb-2 border-b border-slate-100 dark:border-cad-border mb-2">
+          手册目录导航
+        </div>
+        <a href="#sec-overview" class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-blue-50 dark:hover:bg-slate-800 hover:text-blue-600 dark:hover:text-blue-400 transition">
+          <span class="w-5 text-xs font-mono text-blue-500">01</span> 系统概述与安装
+        </a>
+        <a href="#sec-simulator" class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-blue-50 dark:hover:bg-slate-800 hover:text-blue-600 dark:hover:text-blue-400 transition">
+          <span class="w-5 text-xs font-mono text-blue-500">02</span> DCL 交互模拟器
+        </a>
+        <a href="#sec-geometry" class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-blue-50 dark:hover:bg-slate-800 hover:text-blue-600 dark:hover:text-blue-400 transition">
+          <span class="w-5 text-xs font-mono text-blue-500">03</span> 云线几何与布尔原理
+        </a>
+        <a href="#sec-workflows" class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-blue-50 dark:hover:bg-slate-800 hover:text-blue-600 dark:hover:text-blue-400 transition">
+          <span class="w-5 text-xs font-mono text-blue-500">04</span> 七大快捷工具图解
+        </a>
+        <a href="#sec-commands" class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-blue-50 dark:hover:bg-slate-800 hover:text-blue-600 dark:hover:text-blue-400 transition">
+          <span class="w-5 text-xs font-mono text-blue-500">05</span> 命令速查检索表
+        </a>
+        <a href="#sec-architecture" class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-blue-50 dark:hover:bg-slate-800 hover:text-blue-600 dark:hover:text-blue-400 transition">
+          <span class="w-5 text-xs font-mono text-blue-500">06</span> 底层数据结构与兼容
+        </a>
+
+        <div class="mt-6 pt-4 border-t border-slate-100 dark:border-cad-border px-2">
+          <div class="text-xs text-slate-500 dark:text-slate-400 mb-2">主启动快捷键：</div>
+          <div class="flex gap-2">
+            <kbd class="px-2.5 py-1 text-xs font-mono font-bold bg-slate-100 dark:bg-slate-800 text-blue-600 dark:text-blue-400 rounded border border-slate-300 dark:border-slate-700">XDYX</kbd>
+            <kbd class="px-2.5 py-1 text-xs font-mono font-bold bg-slate-100 dark:bg-slate-800 text-blue-600 dark:text-blue-400 rounded border border-slate-300 dark:border-slate-700">XRC</kbd>
+          </div>
+        </div>
+      </nav>
+    </aside>
+
+    <!-- Right Main Content Area -->
+    <main class="flex-1 space-y-12 min-w-0">
+
+      <!-- ================================================================
+           SECTION 01: 系统概述与安装指南
+           ================================================================ -->
+      <section id="sec-overview" class="bg-white dark:bg-cad-panel rounded-2xl border border-slate-200 dark:border-cad-border p-6 sm:p-8 shadow-sm">
+        <div class="flex flex-wrap items-center justify-between gap-4 pb-6 border-b border-slate-200 dark:border-cad-border">
+          <div>
+            <span class="text-xs font-mono uppercase tracking-wider text-blue-600 dark:text-blue-400 font-semibold">SECTION 01 // OVERVIEW & INSTALLATION</span>
+            <h2 class="text-2xl font-bold text-slate-900 dark:text-white mt-1">系统概述与加载指南</h2>
+          </div>
+          <div class="flex items-center gap-2 text-xs font-mono bg-slate-100 dark:bg-slate-800/90 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700">
+            <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+            <span>文件名：XDYX_修订云线_v 0.1.0.lsp</span>
+          </div>
+        </div>
+
+        <!-- Core Highlights Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 my-6">
+          <div class="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-cad-border">
+            <div class="text-xs font-mono text-blue-600 dark:text-blue-400 font-semibold mb-1">纯几何原生构建</div>
+            <div class="text-sm font-bold text-slate-900 dark:text-white mb-1">跨版本零命令差异</div>
+            <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+              摒弃受 CAD 版本制约的 <code class="font-mono text-blue-500">_.REVCLOUD</code> 与 <code class="font-mono text-blue-500">_.GROUP</code> 宏命令，直接通过 <code class="font-mono">entmakex</code> 构造凸度多段线与 <code class="font-mono">ACAD_GROUP</code> 词典匿名组，在 AutoCAD 2007–2027 中表现完全一致。
+            </p>
+          </div>
+          <div class="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-cad-border">
+            <div class="text-xs font-mono text-emerald-600 dark:text-emerald-400 font-semibold mb-1">AcDbRegion 布尔运算</div>
+            <div class="text-sm font-bold text-slate-900 dark:text-white mb-1">多区域智能并集云线</div>
+            <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+              支持连续框选多个矩形或多边形区域：相交重叠区域自动执行 <code class="font-mono">acUnion</code> 布尔合并为单个异形云线；互不相连的区域自动分别引出引线汇聚至同一批注文字。
+            </p>
+          </div>
+          <div class="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-cad-border">
+            <div class="text-xs font-mono text-amber-600 dark:text-amber-400 font-semibold mb-1">XDYX_SYS 扩展数据</div>
+            <div class="text-sm font-bold text-slate-900 dark:text-white mb-1">全图批注一键导出汇总表</div>
+            <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+              每处云线批注自动写入包含【批注人、日期、修改意见】的扩展数据（XData），通过 <code class="font-mono text-amber-500">XRA</code> 命令即可在图纸中一键生成规范的原生 CAD 校审记录汇总表格。
+            </p>
+          </div>
+        </div>
+
+        <!-- 3-Step Installation -->
+        <h3 class="text-base font-bold text-slate-900 dark:text-white mb-3 flex items-center gap-2">
+          <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+          三步快速加载流程
+        </h3>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div class="relative p-4 rounded-xl border border-slate-200 dark:border-cad-border bg-white dark:bg-slate-900/60">
+            <div class="flex items-center justify-between mb-2">
+              <span class="px-2 py-0.5 text-xs font-mono font-bold rounded bg-blue-500/10 text-blue-600 dark:text-blue-400">STEP 01</span>
+              <code class="text-xs font-mono text-slate-400">命令: APPLOAD</code>
+            </div>
+            <p class="text-xs font-semibold text-slate-800 dark:text-slate-200 mb-1">加载 LISP 程序文件</p>
+            <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+              在 AutoCAD 命令行输入 <code class="font-mono text-blue-500">APPLOAD</code>（或直接将 <code class="font-mono">.lsp</code> 文件拖拽至绘图区空白处），点击【加载(L)】。如需每次启动自动加载，请点击右下角公文包图标加入【启动组】。
+            </p>
+          </div>
+
+          <div class="relative p-4 rounded-xl border border-slate-200 dark:border-cad-border bg-white dark:bg-slate-900/60">
+            <div class="flex items-center justify-between mb-2">
+              <span class="px-2 py-0.5 text-xs font-mono font-bold rounded bg-blue-500/10 text-blue-600 dark:text-blue-400">STEP 02</span>
+              <code class="text-xs font-mono text-slate-400">命令: XDYX 或 XRC</code>
+            </div>
+            <p class="text-xs font-semibold text-slate-800 dark:text-slate-200 mb-1">唤出批注控制主面板</p>
+            <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+              输入 <code class="font-mono text-blue-500">XDYX</code> 或简写别名 <code class="font-mono text-blue-500">XRC</code> 回车，打开修订云线设置对话框。配置批注人、常用词条、云线形态及弧长后，点击【确定】或直接<strong>双击词条列表</strong>开始绘制。
+            </p>
+          </div>
+
+          <div class="relative p-4 rounded-xl border border-slate-200 dark:border-cad-border bg-white dark:bg-slate-900/60">
+            <div class="flex items-center justify-between mb-2">
+              <span class="px-2 py-0.5 text-xs font-mono font-bold rounded bg-blue-500/10 text-blue-600 dark:text-blue-400">STEP 03</span>
+              <code class="text-xs font-mono text-slate-400">快捷键: S 键切换</code>
+            </div>
+            <p class="text-xs font-semibold text-slate-800 dark:text-slate-200 mb-1">静默连续批注与面板重开</p>
+            <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+              若勾选了<strong>“下次跳过此面板”</strong>，执行 <code class="font-mono text-blue-500">XRC</code> 时将直接进入十字光标选点绘制状态；在命令行提示指定起点时输入 <kbd class="px-1.5 py-0.5 bg-slate-200 dark:bg-slate-700 rounded font-mono">S</kbd> 回车即可随时重新打开设置界面。
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================================================================
+           SECTION 02: 交互式 DCL 界面模拟器与实时 CAD 画布预览
+           ================================================================ -->
+      <section id="sec-simulator" class="bg-white dark:bg-cad-panel rounded-2xl border border-slate-200 dark:border-cad-border p-6 sm:p-8 shadow-sm">
+        <div class="flex flex-wrap items-center justify-between gap-4 pb-6 border-b border-slate-200 dark:border-cad-border">
+          <div>
+            <span class="text-xs font-mono uppercase tracking-wider text-blue-600 dark:text-blue-400 font-semibold">SECTION 02 // INTERACTIVE UI SIMULATOR</span>
+            <h2 class="text-2xl font-bold text-slate-900 dark:text-white mt-1">DCL 界面交互模拟器与控件详解</h2>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">
+              点击下方模拟对话框中的任意单选框、复选框、颜色块或词库项，右侧将同步演示 AutoCAD 绘图区生成的实际云线与引线效果，并在下方显示该控件的技术说明。
+            </p>
+          </div>
+          <span class="px-3 py-1 rounded-full text-xs font-medium bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/30">
+            可点击交互控件
+          </span>
+        </div>
+
+        <div class="grid grid-cols-1 xl:grid-cols-12 gap-6 mt-6 items-start">
+
+          <!-- Left Column: Interactive Replica of HHXDYX DCL Dialog (7 cols) -->
+          <div class="xl:col-span-7 overflow-x-auto">
+            <div class="dcl-window rounded min-w-[540px]">
+              <div class="dcl-titlebar">
+                <div class="flex items-center gap-2">
+                  <span class="inline-block w-3 h-3 bg-red-500 rounded-sm border border-white/40"></span>
+                  <span>XDYX 修订云线批注系统 v0.1</span>
+                </div>
+                <span class="font-mono text-xs opacity-80">✕</span>
+              </div>
+
+              <div class="p-2.5 grid grid-cols-12 gap-2.5">
+                <!-- Left Column inside DCL -->
+                <div class="col-span-7 flex flex-col justify-between">
+                  <div>
+                    <!-- Preview Box inside DCL -->
+                    <div class="dcl-fieldset" onmouseenter="showControlTip('img_preview')">
+                      <div class="dcl-legend">实时样式与布局预览 (img_preview)</div>
+                      <div class="bg-[#1f242d] border border-gray-600 h-24 w-full flex items-center justify-center overflow-hidden rounded-sm">
+                        <svg id="dcl-mini-svg" viewBox="0 0 280 90" class="w-full h-full"></svg>
+                      </div>
+                    </div>
+
+                    <!-- Annotation Info & Dictionary -->
+                    <div class="dcl-fieldset">
+                      <div class="dcl-legend">批注信息与词库管理</div>
+                      <div class="space-y-1.5 mt-1">
+                        <!-- Row 1: Author -->
+                        <div class="flex items-center justify-between gap-2" onmouseenter="showControlTip('author_row')">
+                          <label class="flex items-center gap-1">
+                            <span>批注人:</span>
+                            <input id="sim-author" type="text" value="张工" oninput="updateSimulator()" class="dcl-input w-20" />
+                          </label>
+                          <label class="flex items-center gap-1 cursor-pointer">
+                            <input id="sim-show-author" type="checkbox" checked onchange="updateSimulator()" />
+                            <span>显批注人</span>
+                          </label>
+                          <label class="flex items-center gap-1 cursor-pointer">
+                            <input id="sim-show-date" type="checkbox" checked onchange="updateSimulator()" />
+                            <span>显日期</span>
+                          </label>
+                        </div>
+
+                        <!-- Row 2: Date -->
+                        <div class="flex items-center justify-between gap-2" onmouseenter="showControlTip('date_row')">
+                          <label class="flex items-center gap-1">
+                            <span>日　期:</span>
+                            <input id="sim-date" type="text" value="20261103" disabled oninput="updateSimulator()" class="dcl-input w-24 font-mono" />
+                          </label>
+                          <label class="flex items-center gap-1 cursor-pointer">
+                            <input id="sim-auto-date" type="checkbox" checked onchange="toggleAutoDate()" />
+                            <span>自动使用当天日期</span>
+                          </label>
+                        </div>
+
+                        <!-- Row 2.5: Revision Triangle & Number -->
+                        <div class="flex items-center justify-between text-xs gap-2">
+                          <label class="flex items-center gap-1 cursor-pointer font-medium text-slate-700 dark:text-slate-300">
+                            <input id="sim-show-rev" type="checkbox" checked onchange="updateSimulator()" />
+                            <span>显三角编号 (△)</span>
+                          </label>
+                          <div class="flex items-center gap-1.5">
+                            <span class="text-[11px] text-slate-500">编号:</span>
+                            <input id="sim-rev-num" type="text" value="1" oninput="updateSimulator()"
+                                   class="w-16 px-1.5 py-0.5 text-xs rounded border border-slate-300 dark:border-cad-border bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-200 text-center font-mono font-bold" />
+                          </div>
+                        </div>
+
+                        <!-- Row 3: Custom Note -->
+                        <div class="flex items-center justify-between gap-1" onmouseenter="showControlTip('note_row')">
+                          <label class="flex items-center gap-1 flex-1">
+                            <span class="shrink-0">批注词:</span>
+                            <input id="sim-note" type="text" value="此处梁高与结构图不符，请复核" oninput="updateSimulator()" class="dcl-input w-full" />
+                          </label>
+                          <button type="button" onclick="document.getElementById('sim-note').value='';updateSimulator();" class="dcl-btn">清空</button>
+                        </div>
+
+                        <!-- Row 4: Opinion Listbox -->
+                        <div class="pt-1" onmouseenter="showControlTip('dict_list')">
+                          <div class="flex justify-between text-[11px] text-gray-600 mb-1">
+                            <span>点击词条立即回填预览：</span>
+                            <span class="font-mono">词条: 5/5</span>
+                          </div>
+                          <div id="sim-dict-box" class="bg-white border border-[#7f9db9] h-24 overflow-y-auto text-xs divide-y divide-gray-100">
+                            <div onclick="selectDictItem(this, '此处梁高与结构图不符，请复核')" class="px-2 py-1 cursor-pointer bg-blue-600 text-white">此处梁高与结构图不符，请复核</div>
+                            <div onclick="selectDictItem(this, '此处需补充节点详图索引')" class="px-2 py-1 cursor-pointer hover:bg-blue-50">此处需补充节点详图索引</div>
+                            <div onclick="selectDictItem(this, '防火分区边界线核对无误')" class="px-2 py-1 cursor-pointer hover:bg-blue-50">防火分区边界线核对无误</div>
+                            <div onclick="selectDictItem(this, '标高存在碰撞，请与机电核实')" class="px-2 py-1 cursor-pointer hover:bg-blue-50">标高存在碰撞，请与机电核实</div>
+                            <div onclick="selectDictItem(this, '管井洞口尺寸待设备专业确认')" class="px-2 py-1 cursor-pointer hover:bg-blue-50">管井洞口尺寸待设备专业确认</div>
+                          </div>
+                        </div>
+
+                        <!-- Row 5: Dict Buttons -->
+                        <div class="grid grid-cols-7 gap-1 pt-1" onmouseenter="showControlTip('dict_btns')">
+                          <button type="button" class="dcl-btn">新增</button>
+                          <button type="button" class="dcl-btn">修改</button>
+                          <button type="button" class="dcl-btn">删除</button>
+                          <button type="button" class="dcl-btn">上移</button>
+                          <button type="button" class="dcl-btn">下移</button>
+                          <button type="button" class="dcl-btn">导入</button>
+                          <button type="button" class="dcl-btn">导出</button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Right Column inside DCL -->
+                <div class="col-span-5 flex flex-col justify-between">
+                  <div>
+                    <!-- Cloud Geometry Params -->
+                    <div class="dcl-fieldset" onmouseenter="showControlTip('cloud_params')">
+                      <div class="dcl-legend">云线几何参数</div>
+                      <div class="space-y-1.5 mt-1">
+                        <div class="flex items-center justify-between">
+                          <span class="text-gray-600">形态:</span>
+                          <label class="flex items-center gap-1 cursor-pointer">
+                            <input type="radio" name="sim-ctype" value="rect" checked onchange="updateSimulator()" /> 矩形云线
+                          </label>
+                          <label class="flex items-center gap-1 cursor-pointer">
+                            <input type="radio" name="sim-ctype" value="poly" onchange="updateSimulator()" /> 多边形云线
+                          </label>
+                        </div>
+
+                        <div class="flex items-center justify-between">
+                          <span class="text-gray-600">笔触:</span>
+                          <label class="flex items-center gap-1 cursor-pointer">
+                            <input type="radio" name="sim-cstyle" value="norm" onchange="updateSimulator()" /> 普通细线
+                          </label>
+                          <label class="flex items-center gap-1 cursor-pointer">
+                            <input type="radio" name="sim-cstyle" value="hand" checked onchange="updateSimulator()" /> 手绘美工
+                          </label>
+                        </div>
+
+                        <div class="flex items-center justify-between">
+                          <span class="text-gray-600">模式:</span>
+                          <label class="flex items-center gap-1 cursor-pointer">
+                            <input type="radio" name="sim-multi" value="single" checked onchange="updateSimulator()" /> 单区云线
+                          </label>
+                          <label class="flex items-center gap-1 cursor-pointer">
+                            <input type="radio" name="sim-multi" value="multi" onchange="updateSimulator()" /> 布尔多云线
+                          </label>
+                        </div>
+
+                        <div class="flex items-center justify-between gap-1 pt-1" onmouseenter="showControlTip('pick_arc')">
+                          <label class="flex items-center gap-1">
+                            <span>小弧:</span>
+                            <input type="text" value="15.0" class="dcl-input w-10 font-mono text-center" readonly />
+                          </label>
+                          <label class="flex items-center gap-1">
+                            <span>大弧:</span>
+                            <input type="text" value="25.0" class="dcl-input w-10 font-mono text-center" readonly />
+                          </label>
+                          <button type="button" onclick="showControlTip('pick_arc')" class="dcl-btn">拾取同步&lt;</button>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Layer & Text Style -->
+                    <div class="dcl-fieldset" onmouseenter="showControlTip('layer_style')">
+                      <div class="dcl-legend">图层与文字样式</div>
+                      <div class="space-y-1.5 mt-1">
+                        <div class="flex items-center justify-between gap-1">
+                          <label class="flex items-center gap-1 flex-1">
+                            <span>图层:</span>
+                            <input id="sim-layer" type="text" value="XDYX_修订云线" oninput="updateSimulator()" class="dcl-input w-full" />
+                          </label>
+                          <button type="button" class="dcl-btn shrink-0">拾取图层&lt;</button>
+                        </div>
+
+                        <div class="flex items-center justify-between">
+                          <label class="flex items-center gap-1 cursor-pointer">
+                            <input id="sim-layer-date" type="checkbox" onchange="updateSimulator()" />
+                            <span>层名加日期后缀</span>
+                          </label>
+                          <label class="flex items-center gap-1 cursor-pointer">
+                            <input type="checkbox" checked />
+                            <span>按WCS水平生成</span>
+                          </label>
+                        </div>
+
+                        <div class="flex items-center justify-between gap-1" onmouseenter="showControlTip('color_picker')">
+                          <span>颜色:</span>
+                          <div class="flex items-center gap-1">
+                            <button type="button" onclick="setSimColor('#ff3b3b', '1 (红)')" class="w-4 h-4 bg-[#ff3b3b] border border-gray-700" title="ACI 1: 红色"></button>
+                            <button type="button" onclick="setSimColor('#ffff00', '2 (黄)')" class="w-4 h-4 bg-[#ffff00] border border-gray-700" title="ACI 2: 黄色"></button>
+                            <button type="button" onclick="setSimColor('#00ff00', '3 (绿)')" class="w-4 h-4 bg-[#00ff00] border border-gray-700" title="ACI 3: 绿色"></button>
+                            <button type="button" onclick="setSimColor('#00ffff', '4 (青)')" class="w-4 h-4 bg-[#00ffff] border border-gray-700" title="ACI 4: 青色"></button>
+                            <button type="button" onclick="setSimColor('#ff00ff', '6 (洋红)')" class="w-4 h-4 bg-[#ff00ff] border border-gray-700" title="ACI 6: 洋红"></button>
+                          </div>
+                          <span id="sim-color-label" class="font-mono text-[11px]">1 (红)</span>
+                        </div>
+
+                        <div class="flex items-center justify-between pt-0.5">
+                          <label class="flex items-center gap-1 cursor-pointer">
+                            <input type="checkbox" />
+                            <span>启用注释性缩放</span>
+                          </label>
+                          <label class="flex items-center gap-1 cursor-pointer" onmouseenter="showControlTip('skip_mode')">
+                            <input type="checkbox" />
+                            <span>下次跳过此面板</span>
+                          </label>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Quick Toolbox -->
+                    <div class="dcl-fieldset" onmouseenter="showControlTip('toolbox')">
+                      <div class="dcl-legend">快捷工具箱 (亦可命令行直接输入)</div>
+                      <div class="grid grid-cols-3 gap-1 mt-1">
+                        <button type="button" onclick="scrollToCmd('ZRC')" class="dcl-btn">ZRC 转云线</button>
+                        <button type="button" onclick="scrollToCmd('DRC')" class="dcl-btn">DRC 裸画</button>
+                        <button type="button" onclick="scrollToCmd('GRC')" class="dcl-btn">GRC 文字框</button>
+                        <button type="button" onclick="scrollToCmd('CRC')" class="dcl-btn">CRC 连引线</button>
+                        <button type="button" onclick="scrollToCmd('XRA')" class="dcl-btn">XRA 导表格</button>
+                        <button type="button" onclick="scrollToCmd('ZKG')" class="dcl-btn">ZKG 组开关</button>
+                        <button type="button" onclick="scrollToCmd('EDRC')" class="dcl-btn bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-300 font-bold">EDRC 改批注</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Bottom Bar -->
+              <div class="px-3 pb-2.5 pt-1 flex items-center justify-between border-t border-gray-300">
+                <span class="text-[11px] text-gray-600">提示: 双击词库可直接开始绘制；静默模式下按 S 键可随时调出设置面板。</span>
+                <div class="flex gap-2">
+                  <button type="button" class="dcl-btn px-4 font-semibold border-blue-700">确定</button>
+                  <button type="button" class="dcl-btn px-4">取消</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right Column: Live AutoCAD ModelSpace Viewport Preview + Control Inspector (5 cols) -->
+          <div class="xl:col-span-5 flex flex-col gap-4">
+            <!-- Live CAD Canvas Viewport -->
+            <div class="rounded-xl overflow-hidden border border-slate-300 dark:border-cad-border shadow-md cad-grid relative">
+              <!-- Viewport Header -->
+              <div class="px-3 py-2 bg-slate-900/90 border-b border-slate-800 flex items-center justify-between text-xs font-mono text-slate-300">
+                <div class="flex items-center gap-2">
+                  <span class="text-blue-400 font-bold">[-][俯视][2D线框]</span>
+                  <span id="cad-layer-indicator" class="px-2 py-0.5 rounded bg-slate-800 text-red-400 border border-slate-700">图层: XDYX_修订云线</span>
+                </div>
+                <div class="flex items-center gap-1.5">
+                  <span class="text-[11px] text-slate-400">引线方向:</span>
+                  <button type="button" id="btn-dir-right" onclick="setLeaderDir('right')" class="px-2 py-0.5 rounded bg-blue-600 text-white text-[11px]">右侧引出(ML)</button>
+                  <button type="button" id="btn-dir-left" onclick="setLeaderDir('left')" class="px-2 py-0.5 rounded bg-slate-800 text-slate-300 hover:bg-slate-700 text-[11px]">左侧引出(MR)</button>
+                </div>
+              </div>
+
+              <!-- Main SVG CAD Preview -->
+              <div class="h-72 w-full flex items-center justify-center p-2">
+                <svg id="cad-main-svg" viewBox="0 0 500 270" class="w-full h-full"></svg>
+              </div>
+
+              <!-- CAD Command Line Bar -->
+              <div class="bg-[#181b22] border-t border-slate-800 px-3 py-2 font-mono text-xs text-slate-300 flex items-center justify-between">
+                <div class="truncate">
+                  <span class="text-slate-500">命令:</span> <span class="text-emerald-400">XDYX</span>
+                  <span id="cad-cmd-prompt" class="text-slate-300 ml-1">指定批注引线文字插入点: &lt;已自动编组 ACAD_GROUP&gt;</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Interactive Control Explanation Box -->
+            <div class="p-4 rounded-xl bg-blue-50/70 dark:bg-slate-800/70 border border-blue-200 dark:border-cad-border">
+              <div class="flex items-center gap-2 text-xs font-mono text-blue-600 dark:text-blue-400 font-bold mb-1">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                <span id="tip-title">控件技术解析：手绘美工笔触 &amp; 布尔多云线</span>
+              </div>
+              <p id="tip-desc" class="text-xs text-slate-700 dark:text-slate-300 leading-relaxed">
+                将鼠标悬停或点击左侧模拟面板中的任意区域，此处将显示对应的 AutoLISP 实现逻辑与操作技巧。试试切换【单区云线 / 布尔多云线】或顶部【左侧引出 / 右侧引出】按钮观察引线自适应对齐效果！
+              </p>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- ================================================================
+           SECTION 03: 云线几何原理与多区域布尔并集图解
+           ================================================================ -->
+      <section id="sec-geometry" class="bg-white dark:bg-cad-panel rounded-2xl border border-slate-200 dark:border-cad-border p-6 sm:p-8 shadow-sm print-break">
+        <div class="pb-6 border-b border-slate-200 dark:border-cad-border">
+          <span class="text-xs font-mono uppercase tracking-wider text-blue-600 dark:text-blue-400 font-semibold">SECTION 03 // GEOMETRY &amp; BOOLEAN ALGORITHMS</span>
+          <h2 class="text-2xl font-bold text-slate-900 dark:text-white mt-1">云线几何算法与布尔多云线图解</h2>
+          <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">
+            深入理解 v 0.1.0 如何解决多边形云线内外翻转、手绘弧段变宽以及多区域自动并集问题。
+          </p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+          <!-- Diagram Card 1: CCW Winding & Bulge = 0.520567 & Adaptive Leader -->
+          <div class="rounded-xl border border-slate-200 dark:border-cad-border overflow-hidden flex flex-col">
+            <div class="p-4 bg-slate-50 dark:bg-slate-800/60 border-b border-slate-200 dark:border-cad-border">
+              <div class="flex items-center justify-between">
+                <h3 class="text-sm font-bold text-slate-900 dark:text-white">图解 1：逆时针旋向修正与引线左右自适应对齐</h3>
+                <span class="text-xs font-mono text-blue-500">Bulge = +0.520567</span>
+              </div>
+            </div>
+            <div class="cad-grid p-4 flex-1 flex items-center justify-center">
+              <svg viewBox="0 0 460 220" class="w-full h-auto max-h-56">
+                <!-- Left Leader Example (MR / BR) with Triangle & Top/Bottom split -->
+                <g transform="translate(10, 15)">
+                  <text x="5" y="16" fill="#94a3b8" font-size="11" font-family="monospace">A. 文字在云线左侧 → 右对齐 (基线上:BR / 基线下:TR)</text>
+                  <!-- Leader Left -->
+                  <line x1="175" y1="65" x2="140" y2="48" stroke="#00ffff" stroke-width="1.6"/>
+                  <!-- Baseline Left -->
+                  <line x1="20" y1="48" x2="140" y2="48" stroke="#00ffff" stroke-width="1.6"/>
+                  <!-- Revision Triangle at Shoulder joint -->
+                  <polygon points="140,48 122,48 131,32" fill="none" stroke="#00ffff" stroke-width="1.4"/>
+                  <text x="131" y="45" fill="#00ffff" font-size="9" text-anchor="middle" font-weight="bold">1</text>
+                  <!-- Top Note (Above baseline, BR aligned) -->
+                  <text x="116" y="43" fill="#00ffff" font-size="11" text-anchor="end" font-family="Microsoft YaHei">张工 : 尺寸核对</text>
+                  <!-- Bottom Date (Below baseline, TR aligned) -->
+                  <text x="116" y="63" fill="#00ffff" font-size="10" text-anchor="end" font-family="monospace">时间 : 20261106</text>
+                  <circle cx="140" cy="48" r="3" fill="#ffff00"/>
+                  <text x="85" y="80" fill="#ffff00" font-size="10" font-family="monospace">基线居中隔离 · 无穿刺</text>
+                </g>
+
+                <!-- Center Cloud with CCW Arrow -->
+                <g transform="translate(185, 50)">
+                  <path d="M 10,30 A 14,14 0 0,1 35,20 A 14,14 0 0,1 65,20 A 14,14 0 0,1 90,30 A 14,14 0 0,1 90,60 A 14,14 0 0,1 90,90 A 14,14 0 0,1 65,100 A 14,14 0 0,1 35,100 A 14,14 0 0,1 10,90 A 14,14 0 0,1 10,60 A 14,14 0 0,1 10,30 Z"
+                        fill="rgba(255, 59, 59, 0.08)" stroke="#ff3b3b" stroke-width="2.2"/>
+                  <!-- CCW indicator -->
+                  <path d="M 35,55 A 18,18 0 1,0 65,55" fill="none" stroke="#10b981" stroke-width="1.5" stroke-dasharray="3,2"/>
+                  <polygon points="65,50 70,58 61,58" fill="#10b981"/>
+                  <text x="50" y="65" fill="#10b981" font-size="10" text-anchor="middle" font-family="monospace">CCW 逆时针</text>
+                  <text x="50" y="122" fill="#cbd5e1" font-size="10" text-anchor="middle" font-family="Microsoft YaHei">有向面积自动校正外凸</text>
+                </g>
+
+                <!-- Right Leader Example (ML / BL) with Triangle & Top/Bottom split -->
+                <g transform="translate(275, 95)">
+                  <text x="-35" y="-55" fill="#94a3b8" font-size="11" font-family="monospace">B. 文字在右侧 → 左对齐 (基线上:BL / 基线下:TL)</text>
+                  <!-- Slant Leader -->
+                  <line x1="0" y1="25" x2="35" y2="8" stroke="#ff3b3b" stroke-width="1.6"/>
+                  <!-- Baseline Right -->
+                  <line x1="35" y1="8" x2="165" y2="8" stroke="#ff3b3b" stroke-width="1.6"/>
+                  <!-- Revision Triangle at Shoulder joint -->
+                  <polygon points="35,8 53,8 44,-8" fill="none" stroke="#ff3b3b" stroke-width="1.4"/>
+                  <text x="44" y="5" fill="#ff3b3b" font-size="9" text-anchor="middle" font-weight="bold">1</text>
+                  <!-- Top Note (Above baseline, BL aligned) -->
+                  <text x="58" y="4" fill="#ff3b3b" font-size="11" text-anchor="start" font-family="Microsoft YaHei">张工 : 此处需修改</text>
+                  <!-- Bottom Date (Below baseline, TL aligned) -->
+                  <text x="58" y="23" fill="#ff3b3b" font-size="10" text-anchor="start" font-family="monospace">时间 : 20261106</text>
+                  <circle cx="35" cy="8" r="3" fill="#ffff00"/>
+                  <text x="45" y="38" fill="#ffff00" font-size="10" font-family="monospace">△1 修订三角居左就位</text>
+                </g>
+              </svg>
+            </div>
+            <div class="p-4 text-xs text-slate-600 dark:text-slate-300 space-y-1.5 bg-white dark:bg-cad-panel">
+              <p>• <strong>上下分层批注与修订正三角 (△) 符号</strong>：彻底重构旧版单行多行文字换行缺陷。批注正文严格居于托底基线上方（左下 BL / 右下 BR 对齐），日期信息严格居于基线下方（左上 TL / 右上 TR 对齐），水平基线居中隔离贯穿，<strong>绝不发生基线穿刺文字或转义丢失成“P时间”的异常</strong>；引线折角端点自动生成正三角形及居中修订编号。</p>
+              <p>• <strong>凸弧恒朝外（有向面积校验）</strong>：无论顺时针还是逆时针框选，<code class="font-mono text-blue-500">xdyx-signed-area</code> 均自动规范顶点序列为逆时针 (CCW)，确保 <code class="font-mono">DXF 42 = ±0.520567</code> 弧向恒正外凸。</p>
+              <p>• <strong>美工刀书法收锋笔触</strong>：手绘笔触下圆弧起点线宽 0.0、终点线宽为弦长之比例，呈现自然刚劲的工程校审书法笔意。</p>
+            </div>
+          </div>
+
+          <!-- Diagram Card 2: Boolean Multi-Cloud Union -->
+          <div class="rounded-xl border border-slate-200 dark:border-cad-border overflow-hidden flex flex-col">
+            <div class="p-4 bg-slate-50 dark:bg-slate-800/60 border-b border-slate-200 dark:border-cad-border">
+              <div class="flex items-center justify-between">
+                <h3 class="text-sm font-bold text-slate-900 dark:text-white">图解 2：布尔多云线模式（重叠自动合并 + 离散多引线）</h3>
+                <span class="text-xs font-mono text-emerald-500">vla-Boolean acUnion</span>
+              </div>
+            </div>
+            <div class="cad-grid p-4 flex-1 flex items-center justify-center">
+              <svg viewBox="0 0 460 220" class="w-full h-auto max-h-56">
+                <!-- Left Leader Example (MR / BR) with Triangle & Top/Bottom split -->
+                <g transform="translate(10, 15)">
+                  <text x="5" y="16" fill="#94a3b8" font-size="11" font-family="monospace">A. 文字在云线左侧 → 右对齐 (基线上:BR / 基线下:TR)</text>
+                  <!-- Leader Left -->
+                  <line x1="175" y1="65" x2="140" y2="48" stroke="#00ffff" stroke-width="1.6"/>
+                  <!-- Baseline Left -->
+                  <line x1="20" y1="48" x2="140" y2="48" stroke="#00ffff" stroke-width="1.6"/>
+                  <!-- Revision Triangle at Shoulder joint -->
+                  <polygon points="140,48 122,48 131,32" fill="none" stroke="#00ffff" stroke-width="1.4"/>
+                  <text x="131" y="45" fill="#00ffff" font-size="9" text-anchor="middle" font-weight="bold">1</text>
+                  <!-- Top Note (Above baseline, BR aligned) -->
+                  <text x="116" y="43" fill="#00ffff" font-size="11" text-anchor="end" font-family="Microsoft YaHei">张工 : 尺寸核对</text>
+                  <!-- Bottom Date (Below baseline, TR aligned) -->
+                  <text x="116" y="63" fill="#00ffff" font-size="10" text-anchor="end" font-family="monospace">时间 : 20261106</text>
+                  <circle cx="140" cy="48" r="3" fill="#ffff00"/>
+                  <text x="85" y="80" fill="#ffff00" font-size="10" font-family="monospace">基线居中隔离 · 无穿刺</text>
+                </g>
+
+                <!-- Center Cloud with CCW Arrow -->
+                <g transform="translate(185, 50)">
+                  <path d="M 10,30 A 14,14 0 0,1 35,20 A 14,14 0 0,1 65,20 A 14,14 0 0,1 90,30 A 14,14 0 0,1 90,60 A 14,14 0 0,1 90,90 A 14,14 0 0,1 65,100 A 14,14 0 0,1 35,100 A 14,14 0 0,1 10,90 A 14,14 0 0,1 10,60 A 14,14 0 0,1 10,30 Z"
+                        fill="rgba(255, 59, 59, 0.08)" stroke="#ff3b3b" stroke-width="2.2"/>
+                  <!-- CCW indicator -->
+                  <path d="M 35,55 A 18,18 0 1,0 65,55" fill="none" stroke="#10b981" stroke-width="1.5" stroke-dasharray="3,2"/>
+                  <polygon points="65,50 70,58 61,58" fill="#10b981"/>
+                  <text x="50" y="65" fill="#10b981" font-size="10" text-anchor="middle" font-family="monospace">CCW 逆时针</text>
+                  <text x="50" y="122" fill="#cbd5e1" font-size="10" text-anchor="middle" font-family="Microsoft YaHei">有向面积自动校正外凸</text>
+                </g>
+
+                <!-- Right Leader Example (ML / BL) with Triangle & Top/Bottom split -->
+                <g transform="translate(275, 95)">
+                  <text x="-35" y="-55" fill="#94a3b8" font-size="11" font-family="monospace">B. 文字在右侧 → 左对齐 (基线上:BL / 基线下:TL)</text>
+                  <!-- Slant Leader -->
+                  <line x1="0" y1="25" x2="35" y2="8" stroke="#ff3b3b" stroke-width="1.6"/>
+                  <!-- Baseline Right -->
+                  <line x1="35" y1="8" x2="165" y2="8" stroke="#ff3b3b" stroke-width="1.6"/>
+                  <!-- Revision Triangle at Shoulder joint -->
+                  <polygon points="35,8 53,8 44,-8" fill="none" stroke="#ff3b3b" stroke-width="1.4"/>
+                  <text x="44" y="5" fill="#ff3b3b" font-size="9" text-anchor="middle" font-weight="bold">1</text>
+                  <!-- Top Note (Above baseline, BL aligned) -->
+                  <text x="58" y="4" fill="#ff3b3b" font-size="11" text-anchor="start" font-family="Microsoft YaHei">张工 : 此处需修改</text>
+                  <!-- Bottom Date (Below baseline, TL aligned) -->
+                  <text x="58" y="23" fill="#ff3b3b" font-size="10" text-anchor="start" font-family="monospace">时间 : 20261106</text>
+                  <circle cx="35" cy="8" r="3" fill="#ffff00"/>
+                  <text x="45" y="38" fill="#ffff00" font-size="10" font-family="monospace">△1 修订三角居左就位</text>
+                </g>
+              </svg>
+            </div>
+            <div class="p-4 text-xs text-slate-600 dark:text-slate-300 space-y-1.5 bg-white dark:bg-cad-panel">
+              <p>• <strong>上下分层批注与修订正三角 (△) 符号</strong>：彻底重构旧版单行多行文字换行缺陷。批注正文严格居于托底基线上方（左下 BL / 右下 BR 对齐），日期信息严格居于基线下方（左上 TL / 右上 TR 对齐），水平基线居中隔离贯穿，<strong>绝不发生基线穿刺文字或转义丢失成“P时间”的异常</strong>；引线折角端点自动生成正三角形及居中修订编号。</p>
+              <p>• <strong>凸弧恒朝外（有向面积校验）</strong>：无论顺时针还是逆时针框选，<code class="font-mono text-blue-500">xdyx-signed-area</code> 均自动规范顶点序列为逆时针 (CCW)，确保 <code class="font-mono">DXF 42 = ±0.520567</code> 弧向恒正外凸。</p>
+              <p>• <strong>美工刀书法收锋笔触</strong>：手绘笔触下圆弧起点线宽 0.0、终点线宽为弦长之比例，呈现自然刚劲的工程校审书法笔意。</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================================================================
+           SECTION 04: 六大快捷工具箱图解说明
+           ================================================================ -->
+      <section id="sec-workflows" class="bg-white dark:bg-cad-panel rounded-2xl border border-slate-200 dark:border-cad-border p-6 sm:p-8 shadow-sm print-break">
+        <div class="pb-6 border-b border-slate-200 dark:border-cad-border">
+          <span class="text-xs font-mono uppercase tracking-wider text-blue-600 dark:text-blue-400 font-semibold">SECTION 04 // SEVEN SPECIALIZED WORKFLOW TOOLS</span>
+          <h2 class="text-2xl font-bold text-slate-900 dark:text-white mt-1">七大快捷命令图解指南</h2>
+          <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">
+            除主命令 <code class="font-mono text-blue-500">XDYX / HH</code> 外，系统提供了 7 个极速快捷工具，既可在主配置面板右下角快捷箱一键启动，也可直接在 AutoCAD 命令行输入对应快捷命令独立运行。
+          </p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
+
+          <!-- Tool 1: ZRC -->
+          <div id="card-ZRC" class="rounded-xl border border-slate-200 dark:border-cad-border overflow-hidden flex flex-col bg-slate-50/50 dark:bg-slate-900/40">
+            <div class="p-3.5 bg-white dark:bg-slate-800/80 border-b border-slate-200 dark:border-cad-border flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <kbd class="px-2 py-0.5 text-xs font-mono font-bold bg-blue-600 text-white rounded">ZRC</kbd>
+                <h3 class="text-sm font-bold text-slate-900 dark:text-white">已有对象转云线</h3>
+              </div>
+              <span class="text-[11px] font-mono text-slate-400">支持批量框选</span>
+            </div>
+            <div class="cad-grid h-36 flex items-center justify-center p-3">
+              <svg viewBox="0 0 260 110" class="w-full h-full">
+                <!-- Original Circle & Polyline -->
+                <circle cx="55" cy="55" r="32" fill="none" stroke="#64748b" stroke-width="1.5" stroke-dasharray="4,3"/>
+                <text x="55" y="58" fill="#94a3b8" font-size="10" text-anchor="middle" font-family="Microsoft YaHei">圆/椭圆/多段线</text>
+                <!-- Arrow -->
+                <path d="M 105,55 L 140,55" stroke="#3b82f6" stroke-width="2"/>
+                <polygon points="140,51 148,55 140,59" fill="#3b82f6"/>
+                <text x="126" y="46" fill="#60a5fa" font-size="9" text-anchor="middle" font-family="monospace">ZRC</text>
+                <!-- Converted Cloud Circle -->
+                <path d="M 172,38 A 9,9 0 0,1 192,24 A 9,9 0 0,1 218,24 A 9,9 0 0,1 236,40 A 9,9 0 0,1 236,68 A 9,9 0 0,1 218,86 A 9,9 0 0,1 192,86 A 9,9 0 0,1 172,70 A 9,9 0 0,1 172,38 Z"
+                      fill="rgba(255,59,59,0.1)" stroke="#ff3b3b" stroke-width="2"/>
+                <text x="204" y="58" fill="#ff3b3b" font-size="10" text-anchor="middle" font-family="Microsoft YaHei">修订云线</text>
+              </svg>
+            </div>
+            <div class="p-4 text-xs text-slate-600 dark:text-slate-300 space-y-1 flex-1">
+              <p><strong>适用对象：</strong>多段线（LWPOLYLINE/POLYLINE）、圆（CIRCLE）、椭圆（ELLIPSE）、圆弧（ARC）、样条曲线（SPLINE）。</p>
+              <p><strong>操作方式：</strong>输入 <code class="font-mono text-blue-500">ZRC</code> → 框选任意数量几何曲线回车，系统自动按当前弧长与笔触采样并替换为闭合云线。</p>
+            </div>
+          </div>
+
+          <!-- Tool 2: DRC -->
+          <div id="card-DRC" class="rounded-xl border border-slate-200 dark:border-cad-border overflow-hidden flex flex-col bg-slate-50/50 dark:bg-slate-900/40">
+            <div class="p-3.5 bg-white dark:bg-slate-800/80 border-b border-slate-200 dark:border-cad-border flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <kbd class="px-2 py-0.5 text-xs font-mono font-bold bg-blue-600 text-white rounded">DRC</kbd>
+                <h3 class="text-sm font-bold text-slate-900 dark:text-white">独立裸画云线 (默认手绘)</h3>
+              </div>
+              <span class="text-[11px] font-mono text-emerald-500 font-medium">默认自由手绘 F</span>
+            </div>
+            <div class="cad-grid h-40 flex items-center justify-center p-3">
+              <svg viewBox="0 0 280 125" class="w-full h-full font-mono">
+                <!-- Freehand cloud path with natural curvy shape -->
+                <path d="M 60,35 C 70,22 95,20 110,32 C 128,18 155,22 170,36 C 190,26 215,35 220,55 C 235,70 230,95 212,105 C 195,118 165,110 150,102 C 130,116 100,112 85,98 C 65,108 45,95 48,75 C 38,58 48,42 60,35 Z"
+                      fill="rgba(0, 255, 255, 0.08)" stroke="#00ffff" stroke-width="2.2" stroke-linecap="round"/>
+                <!-- Cursor moving trail -->
+                <path d="M 60,35 Q 90,45 120,40 T 180,50 T 210,80 T 150,95 T 80,85 T 60,38" fill="none" stroke="#38bdf8" stroke-width="1.2" stroke-dasharray="3,3"/>
+                <!-- Start point snap ring -->
+                <circle cx="60" cy="35" r="7" fill="none" stroke="#eab308" stroke-width="1.5" stroke-dasharray="2,2"/>
+                <circle cx="60" cy="35" r="2.5" fill="#eab308"/>
+                <line x1="48" y1="35" x2="72" y2="35" stroke="#eab308" stroke-width="1"/>
+                <line x1="60" y1="23" x2="60" y2="47" stroke="#eab308" stroke-width="1"/>
+                <text x="76" y="24" fill="#eab308" font-size="9" font-family="Microsoft YaHei">起点吸附闭合 (≤1.25*minA)</text>
+                <!-- Cursor pointer -->
+                <polygon points="63,38 73,43 68,46 72,53 69,55 65,48 60,51" fill="#ffffff" stroke="#000000" stroke-width="0.8"/>
+                <!-- Option Badges -->
+                <rect x="10" y="104" width="260" height="17" fill="#1e293b" rx="3" stroke="#475569" stroke-width="0.8"/>
+                <text x="140" y="116" fill="#38bdf8" font-size="8" text-anchor="middle" font-family="monospace">
+                  [F手绘(默认)] [R矩形] [P多边形] [C圆] [O对象] [V反向] [A弧长]
+                </text>
+              </svg>
+            </div>
+            <div class="p-4 text-xs text-slate-600 dark:text-slate-300 space-y-1.5 flex-1">
+              <p><strong>适用场景：</strong>无需引线与批注文字的独立云线圈定。生成对象自动挂载标准 XData，支持后续使用 <code class="font-mono text-blue-500">CRC</code> 补连引线或 <code class="font-mono text-blue-500">XRA</code> 汇总台账。</p>
+              <p><strong>核心操作：</strong>输入 <code class="font-mono text-blue-500">DRC</code> → <strong>默认自由手绘(F)</strong>，在图中随意拖动光标，实时动态成弧，靠近起点瞬间自动吸附闭合并完成绘制！</p>
+              <p><strong>全能分支：</strong>命令行输入分支关键字随时切换：<code class="font-mono text-blue-500">R</code>(两点矩形)、<code class="font-mono text-blue-500">P</code>(连续多边形带U撤销)、<code class="font-mono text-blue-500">C</code>(圆心半径/2P圆)、<code class="font-mono text-blue-500">O</code>(就地转闭合对象)、<code class="font-mono text-blue-500">V</code>(反转内凹/外凸弧向)、<code class="font-mono text-blue-500">A</code>(动态调弧长)。</p>
+            </div>
+          </div>
+
+          <!-- Tool 3: GRC -->
+          <div id="card-GRC" class="rounded-xl border border-slate-200 dark:border-cad-border overflow-hidden flex flex-col bg-slate-50/50 dark:bg-slate-900/40">
+            <div class="p-3.5 bg-white dark:bg-slate-800/80 border-b border-slate-200 dark:border-cad-border flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <kbd class="px-2 py-0.5 text-xs font-mono font-bold bg-blue-600 text-white rounded">GRC</kbd>
+                <h3 class="text-sm font-bold text-slate-900 dark:text-white">文字批量刷云线框</h3>
+              </div>
+              <span class="text-[11px] font-mono text-slate-400">包围盒自适应偏移</span>
+            </div>
+            <div class="cad-grid h-36 flex items-center justify-center p-3">
+              <svg viewBox="0 0 260 110" class="w-full h-full">
+                <!-- Bounding Box dashed -->
+                <rect x="52" y="34" width="156" height="42" fill="none" stroke="#64748b" stroke-width="1" stroke-dasharray="3,3"/>
+                <!-- Cloud around text -->
+                <path d="M 42,26 A 11,11 0 0,1 78,26 A 11,11 0 0,1 114,26 A 11,11 0 0,1 150,26 A 11,11 0 0,1 186,26 A 11,11 0 0,1 218,26 A 11,11 0 0,1 218,55 A 11,11 0 0,1 218,84 A 11,11 0 0,1 186,84 A 11,11 0 0,1 150,84 A 11,11 0 0,1 114,84 A 11,11 0 0,1 78,84 A 11,11 0 0,1 42,84 A 11,11 0 0,1 42,55 A 11,11 0 0,1 42,26 Z"
+                      fill="rgba(255, 255, 0, 0.07)" stroke="#ffff00" stroke-width="2"/>
+                <text x="130" y="59" fill="#ffffff" font-size="12" text-anchor="middle" font-family="Microsoft YaHei">详见建施-08节点大样</text>
+              </svg>
+            </div>
+            <div class="p-4 text-xs text-slate-600 dark:text-slate-300 space-y-1 flex-1">
+              <p><strong>适用场景：</strong>为图中已有的单行文字（TEXT）或多行文字（MTEXT）快速套上外围修订云线框。</p>
+              <p><strong>操作方式：</strong>输入 <code class="font-mono text-blue-500">GRC</code> → 框选一个或多个文字对象，系统自动计算 <code class="font-mono">BoundingBox</code> 并外扩 <code class="font-mono">0.8×字高</code> 边距生成云线。</p>
+            </div>
+          </div>
+
+          <!-- Tool 4: CRC -->
+          <div id="card-CRC" class="rounded-xl border border-slate-200 dark:border-cad-border overflow-hidden flex flex-col bg-slate-50/50 dark:bg-slate-900/40">
+            <div class="p-3.5 bg-white dark:bg-slate-800/80 border-b border-slate-200 dark:border-cad-border flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <kbd class="px-2 py-0.5 text-xs font-mono font-bold bg-blue-600 text-white rounded">CRC</kbd>
+                <h3 class="text-sm font-bold text-slate-900 dark:text-white">多云线关联连引线</h3>
+              </div>
+              <span class="text-[11px] font-mono text-slate-400">多对一汇聚成组</span>
+            </div>
+            <div class="cad-grid h-36 flex items-center justify-center p-3">
+              <svg viewBox="0 0 260 110" class="w-full h-full">
+                <!-- Cloud 1 -->
+                <path d="M 18,18 A 8,8 0 0,1 48,18 A 8,8 0 0,1 78,18 A 8,8 0 0,1 78,46 A 8,8 0 0,1 48,46 A 8,8 0 0,1 18,46 Z" fill="rgba(255,59,59,0.1)" stroke="#ff3b3b" stroke-width="1.8"/>
+                <!-- Cloud 2 -->
+                <path d="M 18,64 A 8,8 0 0,1 48,64 A 8,8 0 0,1 78,64 A 8,8 0 0,1 78,92 A 8,8 0 0,1 48,92 A 8,8 0 0,1 18,92 Z" fill="rgba(255,59,59,0.1)" stroke="#ff3b3b" stroke-width="1.8"/>
+                <!-- Leaders -->
+                <line x1="78" y1="32" x2="135" y2="55" stroke="#ff3b3b" stroke-width="1.5"/>
+                <line x1="78" y1="78" x2="135" y2="55" stroke="#ff3b3b" stroke-width="1.5"/>
+                <circle cx="135" cy="55" r="3" fill="#ffff00"/>
+                <!-- Target Text -->
+                <rect x="135" y="40" width="110" height="28" fill="rgba(59,130,246,0.15)" stroke="#3b82f6" stroke-width="1" stroke-dasharray="2,2"/>
+                <text x="142" y="58" fill="#ffffff" font-size="11" font-family="Microsoft YaHei">统一修改为 C30</text>
+              </svg>
+            </div>
+            <div class="p-4 text-xs text-slate-600 dark:text-slate-300 space-y-1 flex-1">
+              <p><strong>适用场景：</strong>图纸中多处相同问题已画出独立云线，需将它们全部引线指向同一处批注文字并挂载相同的 XData 属性。</p>
+              <p><strong>操作方式：</strong>输入 <code class="font-mono text-blue-500">CRC</code> → ① 点选目标批注文字 → ② 框选多个独立云线回车，自动求最近点连线并建立匿名组。</p>
+            </div>
+          </div>
+
+          <!-- Tool 5: XRA -->
+          <div id="card-XRA" class="rounded-xl border border-slate-200 dark:border-cad-border overflow-hidden flex flex-col bg-slate-50/50 dark:bg-slate-900/40">
+            <div class="p-3.5 bg-white dark:bg-slate-800/80 border-b border-slate-200 dark:border-cad-border flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <kbd class="px-2 py-0.5 text-xs font-mono font-bold bg-blue-600 text-white rounded">XRA</kbd>
+                <h3 class="text-sm font-bold text-slate-900 dark:text-white">导出校审记录汇总表</h3>
+              </div>
+              <span class="text-[11px] font-mono text-slate-400">5列原生 AcDbTable</span>
+            </div>
+            <div class="cad-grid h-40 flex items-center justify-center p-3">
+              <svg viewBox="0 0 280 120" class="w-full h-full font-mono">
+                <rect x="10" y="8" width="260" height="104" fill="#0f172a" stroke="#00ffff" stroke-width="1.2" rx="2"/>
+                <!-- Title row -->
+                <rect x="10" y="8" width="260" height="20" fill="#1e293b"/>
+                <text x="140" y="22" fill="#ffffff" font-size="10" text-anchor="middle" font-family="Microsoft YaHei">图纸校审批注记录汇总表 (5列原生CAD表格)</text>
+                <line x1="10" y1="28" x2="270" y2="28" stroke="#00ffff" stroke-width="1"/>
+                <!-- Header row -->
+                <rect x="10" y="28" width="260" height="18" fill="#1e293b/80"/>
+                <line x1="10" y1="46" x2="270" y2="46" stroke="#00ffff" stroke-width="1"/>
+                <!-- Vertical grid lines -->
+                <line x1="38" y1="28" x2="38" y2="112" stroke="#00ffff" stroke-width="0.8"/>
+                <line x1="72" y1="28" x2="72" y2="112" stroke="#00ffff" stroke-width="0.8"/>
+                <line x1="118" y1="28" x2="118" y2="112" stroke="#00ffff" stroke-width="0.8"/>
+                <line x1="172" y1="28" x2="172" y2="112" stroke="#00ffff" stroke-width="0.8"/>
+                <!-- Header texts -->
+                <text x="24" y="41" fill="#38bdf8" font-size="8.5" text-anchor="middle">序号</text>
+                <text x="55" y="41" fill="#38bdf8" font-size="8.5" text-anchor="middle">修订</text>
+                <text x="95" y="41" fill="#38bdf8" font-size="8.5" text-anchor="middle">批注人</text>
+                <text x="145" y="41" fill="#38bdf8" font-size="8.5" text-anchor="middle">日期</text>
+                <text x="221" y="41" fill="#38bdf8" font-size="8.5" text-anchor="middle">问题及修改说明</text>
+                <!-- Row 1 -->
+                <line x1="10" y1="78" x2="270" y2="78" stroke="#334155" stroke-width="0.8"/>
+                <text x="24" y="65" fill="#cbd5e1" font-size="8.5" text-anchor="middle">1</text>
+                <polygon points="50,66 60,66 55,57" fill="none" stroke="#ef4444" stroke-width="1"/>
+                <text x="55" y="65" fill="#ef4444" font-size="7.5" text-anchor="middle" font-weight="bold">1</text>
+                <text x="95" y="65" fill="#cbd5e1" font-size="8.5" text-anchor="middle">张工</text>
+                <text x="145" y="65" fill="#cbd5e1" font-size="8" text-anchor="middle">20261103</text>
+                <text x="178" y="65" fill="#cbd5e1" font-size="8.5">梁高与结构不符</text>
+                <!-- Row 2 -->
+                <text x="24" y="97" fill="#cbd5e1" font-size="8.5" text-anchor="middle">2</text>
+                <polygon points="50,98 60,98 55,89" fill="none" stroke="#ef4444" stroke-width="1"/>
+                <text x="55" y="97" fill="#ef4444" font-size="7.5" text-anchor="middle" font-weight="bold">2</text>
+                <text x="95" y="97" fill="#cbd5e1" font-size="8.5" text-anchor="middle">李工</text>
+                <text x="145" y="97" fill="#cbd5e1" font-size="8" text-anchor="middle">20261106</text>
+                <text x="178" y="97" fill="#cbd5e1" font-size="8.5">补充防火节点大样</text>
+              </svg>
+            </div>
+            <div class="p-4 text-xs text-slate-600 dark:text-slate-300 space-y-1 flex-1">
+              <p><strong>核心升级：</strong>自动按 MTEXT 优先检索并做 XData 去重，生成<strong>包含【序号、修订(△)、批注人、日期、问题及修改说明】的 5 列</strong>原生 CAD 表格。</p>
+              <p><strong>操作方式：</strong>输入 <code class="font-mono text-blue-500">XRA</code> → 命令行提示检索到的有效批注总数，在图面上点击表格左上角插入点，瞬间成表。</p>
+            </div>
+          </div>
+
+          <!-- Tool 6: ZKG -->
+          <div id="card-ZKG" class="rounded-xl border border-slate-200 dark:border-cad-border overflow-hidden flex flex-col bg-slate-50/50 dark:bg-slate-900/40">
+            <div class="p-3.5 bg-white dark:bg-slate-800/80 border-b border-slate-200 dark:border-cad-border flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <kbd class="px-2 py-0.5 text-xs font-mono font-bold bg-blue-600 text-white rounded">ZKG</kbd>
+                <h3 class="text-sm font-bold text-slate-900 dark:text-white">编组关联开关切换</h3>
+              </div>
+              <span class="text-[11px] font-mono text-slate-400">PICKSTYLE 位运算</span>
+            </div>
+            <div class="cad-grid h-36 flex items-center justify-center p-3">
+              <svg viewBox="0 0 260 110" class="w-full h-full">
+                <!-- Left: Group ON -->
+                <g transform="translate(15, 18)">
+                  <rect x="0" y="0" width="102" height="74" rx="4" fill="rgba(16,185,129,0.1)" stroke="#10b981" stroke-width="1.2" stroke-dasharray="3,2"/>
+                  <text x="51" y="16" fill="#34d399" font-size="9" text-anchor="middle" font-family="monospace">PICKSTYLE = 1 (开启)</text>
+                  <path d="M 14,34 A 7,7 0 0,1 45,34 A 7,7 0 0,1 45,58 A 7,7 0 0,1 14,58 Z" fill="none" stroke="#34d399" stroke-width="1.5"/>
+                  <line x1="45" y1="46" x2="62" y2="38" stroke="#34d399" stroke-width="1.5"/>
+                  <line x1="62" y1="38" x2="90" y2="38" stroke="#34d399" stroke-width="1.5"/>
+                  <rect x="49" y="43" width="6" height="6" fill="#3b82f6"/>
+                  <text x="51" y="68" fill="#cbd5e1" font-size="9" text-anchor="middle">点击整体联动移动/删除</text>
+                </g>
+                <!-- Right: Group OFF -->
+                <g transform="translate(142, 18)">
+                  <rect x="0" y="0" width="102" height="74" rx="4" fill="rgba(245,158,11,0.1)" stroke="#f59e0b" stroke-width="1.2" stroke-dasharray="3,2"/>
+                  <text x="51" y="16" fill="#fbbf24" font-size="9" text-anchor="middle" font-family="monospace">PICKSTYLE = 0 (关闭)</text>
+                  <path d="M 14,34 A 7,7 0 0,1 45,34 A 7,7 0 0,1 45,58 A 7,7 0 0,1 14,58 Z" fill="none" stroke="#64748b" stroke-width="1.5"/>
+                  <line x1="45" y1="46" x2="62" y2="38" stroke="#64748b" stroke-width="1.5"/>
+                  <line x1="62" y1="38" x2="90" y2="38" stroke="#fbbf24" stroke-width="1.8"/>
+                  <rect x="59" y="35" width="6" height="6" fill="#3b82f6"/>
+                  <text x="51" y="68" fill="#cbd5e1" font-size="9" text-anchor="middle">可单独微调文字或引线</text>
+                </g>
+              </svg>
+            </div>
+            <div class="p-4 text-xs text-slate-600 dark:text-slate-300 space-y-1 flex-1">
+              <p><strong>适用场景：</strong>默认生成的云线、引线与文字会自动成组。当需要单独拖动文字位置而不牵动云线时，可执行此命令临时解绑选择。</p>
+              <p><strong>操作方式：</strong>输入 <code class="font-mono text-blue-500">ZKG</code>（或按 <kbd class="px-1 bg-slate-200 dark:bg-slate-700 rounded font-mono">Ctrl+Shift+A</kbd>）即可一键切换成组联动状态。</p>
+            </div>
+          </div>
+
+          <!-- Tool 7: EDRC -->
+          <div id="card-EDRC" class="col-span-1 md:col-span-2 lg:col-span-3 rounded-xl border border-blue-500/40 dark:border-blue-500/30 overflow-hidden flex flex-col lg:flex-row bg-slate-50/70 dark:bg-slate-900/50 shadow-sm">
+            <!-- Left: High-Precision CAD Visual Workflow SVG -->
+            <div class="cad-grid h-48 lg:h-auto lg:w-7/12 flex items-center justify-center p-3 border-b lg:border-b-0 lg:border-r border-slate-200 dark:border-cad-border">
+              <svg viewBox="0 0 540 130" class="w-full h-full font-mono">
+                <!-- Left: Before Edit (Old text, Baseline len 100) -->
+                <g transform="translate(10, 15)">
+                  <rect x="0" y="0" width="165" height="100" fill="#0f172a" stroke="#334155" stroke-width="1" rx="4"/>
+                  <text x="82" y="16" fill="#94a3b8" font-size="10" text-anchor="middle" font-family="Microsoft YaHei">1. 点击已标注编组任意图元</text>
+                  <!-- Mini Cloud -->
+                  <path d="M 12,55 A 8,8 0 0,1 32,45 A 8,8 0 0,1 52,45 A 8,8 0 0,1 62,65 A 8,8 0 0,1 42,75 A 8,8 0 0,1 22,75 A 8,8 0 0,1 12,55 Z"
+                        fill="rgba(239, 68, 68, 0.15)" stroke="#ef4444" stroke-width="1.6"/>
+                  <!-- Slant leader -->
+                  <line x1="62" y1="58" x2="80" y2="46" stroke="#ef4444" stroke-width="1.4"/>
+                  <!-- Triangle 1 -->
+                  <polygon points="80,46 94,46 87,34" fill="none" stroke="#ef4444" stroke-width="1.3"/>
+                  <text x="87" y="44" fill="#ef4444" font-size="8" text-anchor="middle" font-weight="bold">1</text>
+                  <!-- Baseline -->
+                  <line x1="80" y1="46" x2="152" y2="46" stroke="#ef4444" stroke-width="1.4"/>
+                  <text x="98" y="42" fill="#ef4444" font-size="9" font-family="Microsoft YaHei">张工 : 尺寸核对</text>
+                  <text x="98" y="58" fill="#ef4444" font-size="8" font-family="monospace">时间 : 20261103</text>
+                  <!-- Click cursor target -->
+                  <circle cx="115" cy="46" r="6" fill="none" stroke="#ffff00" stroke-width="1.5" stroke-dasharray="2,2"/>
+                  <circle cx="115" cy="46" r="2" fill="#ffff00"/>
+                  <text x="82" y="92" fill="#eab308" font-size="9" text-anchor="middle">穿透编组 · 单击即中</text>
+                </g>
+
+                <!-- Center: Interactive Edit Dialog Flow -->
+                <g transform="translate(190, 15)">
+                  <!-- Arrow from left -->
+                  <path d="M -12,50 L 5,50" stroke="#3b82f6" stroke-width="2"/>
+                  <!-- Mini Dialog Window -->
+                  <rect x="10" y="5" width="135" height="90" fill="#1e293b" stroke="#3b82f6" stroke-width="1.5" rx="3"/>
+                  <rect x="10" y="5" width="135" height="16" fill="#2563eb" rx="2"/>
+                  <text x="16" y="17" fill="#ffffff" font-size="9" font-family="Microsoft YaHei">EDXDYX 编组修改</text>
+                  <!-- Form inputs simulation -->
+                  <text x="16" y="36" fill="#94a3b8" font-size="8">批注人: 张工</text>
+                  <text x="75" y="36" fill="#94a3b8" font-size="8">修订号: </text>
+                  <rect x="108" y="27" width="28" height="12" fill="#0f172a" stroke="#60a5fa" stroke-width="1"/>
+                  <text x="122" y="36" fill="#60a5fa" font-size="9" text-anchor="middle" font-weight="bold">2</text>
+                  
+                  <text x="16" y="52" fill="#94a3b8" font-size="8">批注词:</text>
+                  <rect x="16" y="56" width="123" height="16" fill="#0f172a" stroke="#60a5fa" stroke-width="1"/>
+                  <text x="20" y="68" fill="#38bdf8" font-size="8" font-family="Microsoft YaHei">增加防火卷帘并复核标高</text>
+                  
+                  <rect x="52" y="78" width="45" height="12" fill="#2563eb" rx="2"/>
+                  <text x="74" y="87" fill="#ffffff" font-size="8" text-anchor="middle">确定修改</text>
+                  <!-- Arrow to right -->
+                  <path d="M 150,50 L 168,50" stroke="#10b981" stroke-width="2"/>
+                  <polygon points="172,50 166,46 166,54" fill="#10b981"/>
+                </g>
+
+                <!-- Right: After Edit (Updated Text, Stretched Baseline, Triangle 2) -->
+                <g transform="translate(375, 15)">
+                  <rect x="0" y="0" width="155" height="100" fill="#0f172a" stroke="#10b981" stroke-width="1" rx="4"/>
+                  <text x="77" y="16" fill="#10b981" font-size="10" text-anchor="middle" font-family="Microsoft YaHei">2. 基线自适应拉伸 + 刷新</text>
+                  <!-- Mini Cloud -->
+                  <path d="M 8,55 A 8,8 0 0,1 28,45 A 8,8 0 0,1 48,45 A 8,8 0 0,1 58,65 A 8,8 0 0,1 38,75 A 8,8 0 0,1 18,75 A 8,8 0 0,1 8,55 Z"
+                        fill="rgba(16, 185, 129, 0.15)" stroke="#10b981" stroke-width="1.6"/>
+                  <!-- Slant leader -->
+                  <line x1="58" y1="58" x2="72" y2="46" stroke="#10b981" stroke-width="1.4"/>
+                  <!-- Triangle 2 -->
+                  <polygon points="72,46 86,46 79,34" fill="none" stroke="#10b981" stroke-width="1.3"/>
+                  <text x="79" y="44" fill="#10b981" font-size="8" text-anchor="middle" font-weight="bold">2</text>
+                  <!-- Stretched Baseline -->
+                  <line x1="72" y1="46" x2="150" y2="46" stroke="#10b981" stroke-width="1.4"/>
+                  <!-- Dynamic stretch glow line -->
+                  <line x1="120" y1="46" x2="150" y2="46" stroke="#34d399" stroke-width="2.5" stroke-dasharray="3,2"/>
+                  <text x="90" y="42" fill="#34d399" font-size="8.5" font-family="Microsoft YaHei">张工 : 增加防火卷帘...</text>
+                  <text x="90" y="58" fill="#10b981" font-size="8" font-family="monospace">时间 : 20261106</text>
+                  <text x="77" y="92" fill="#34d399" font-size="9" text-anchor="middle">基线无损伸长 · 编组不碎</text>
+                </g>
+              </svg>
+            </div>
+
+            <!-- Right: Feature Details & Action -->
+            <div class="lg:w-5/12 p-5 flex flex-col justify-between space-y-4">
+              <div>
+                <div class="flex items-center justify-between pb-2 border-b border-slate-200 dark:border-cad-border">
+                  <div class="flex items-center gap-2">
+                    <kbd class="px-2 py-0.5 text-xs font-mono font-bold bg-blue-600 text-white rounded">EDRC</kbd>
+                    <h3 class="text-sm font-bold text-slate-900 dark:text-white">修改已标注云线批注与三角编号</h3>
+                  </div>
+                  <span class="text-[11px] text-blue-500 font-mono">别名: XED</span>
+                </div>
+                <div class="mt-3 text-xs text-slate-600 dark:text-slate-300 space-y-2 leading-relaxed">
+                  <p><strong>彻底解决编组修改痛点：</strong>传统 CAD 中若开启编组选择，改文字往往牵一发而动全身；文字一旦改长，托底基线又断截悬空。使用 <code class="font-mono text-blue-500">EDRC</code> 可穿透匿名编组，直达批注图元！</p>
+                  <p><strong>四维联动刷新：</strong>修改后自动同步刷新批注 MTEXT、更新云线与文字的 XData 扩展数据、重绘修订三角正多边形 (△) 与编号文本，并<strong>依据文字最新长度动态重算并拉伸/收缩托底基线端点</strong>，保持整个编组的物理与逻辑完整性。</p>
+                </div>
+              </div>
+              <div class="pt-3 border-t border-slate-200/60 dark:border-cad-border/60 flex items-center justify-between">
+                <span class="text-[11px] text-slate-500 font-mono">穿透编组 · 基线自适应 · 同步 XData</span>
+                <button onclick="copyCmd('EDRC', this)" class="px-3 py-1 rounded text-xs bg-blue-600 hover:bg-blue-700 text-white font-mono transition-colors shadow-sm">复制 EDRC</button>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- ================================================================
+           SECTION 05: 命令与参数速查检索表
+           ================================================================ -->
+      <section id="sec-commands" class="bg-white dark:bg-cad-panel rounded-2xl border border-slate-200 dark:border-cad-border p-6 sm:p-8 shadow-sm">
+        <div class="flex flex-wrap items-center justify-between gap-4 pb-6 border-b border-slate-200 dark:border-cad-border">
+          <div>
+            <span class="text-xs font-mono uppercase tracking-wider text-blue-600 dark:text-blue-400 font-semibold">SECTION 05 // COMMAND &amp; SHORTCUT REFERENCE</span>
+            <h2 class="text-2xl font-bold text-slate-900 dark:text-white mt-1">全量命令速查表</h2>
+          </div>
+          <div class="relative w-full sm:w-64 no-print">
+            <input id="cmd-search" type="text" oninput="filterCommandTable()" placeholder="搜索命令名称或功能说明..."
+                   class="w-full pl-9 pr-3 py-1.5 text-xs rounded-lg border border-slate-300 dark:border-cad-border bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-200 focus:outline-none focus:border-blue-500"/>
+            <svg class="w-4 h-4 text-slate-400 absolute left-3 top-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+          </div>
+        </div>
+
+        <div class="overflow-x-auto mt-6">
+          <table class="w-full text-left border-collapse text-xs">
+            <thead>
+              <tr class="border-b border-slate-200 dark:border-cad-border bg-slate-50 dark:bg-slate-800/60 text-slate-600 dark:text-slate-300 font-semibold">
+                <th class="py-3 px-4 w-28">命令 / 快捷键</th>
+                <th class="py-3 px-4 w-40">功能名称</th>
+                <th class="py-3 px-4">交互流程与参数说明</th>
+                <th class="py-3 px-4 w-32">点击复制命令</th>
+              </tr>
+            </thead>
+            <tbody id="cmd-table-body" class="divide-y divide-slate-200 dark:divide-cad-border">
+              <tr class="hover:bg-slate-50/80 dark:hover:bg-slate-800/40">
+                <td class="py-3 px-4 font-mono font-bold text-blue-600 dark:text-blue-400">XDYX / HH / XRC</td>
+                <td class="py-3 px-4 font-semibold text-slate-900 dark:text-white">修订云线批注主命令</td>
+                <td class="py-3 px-4 text-slate-600 dark:text-slate-300">唤出 DCL 主配置面板（静默模式下直接进绘制；命令行输入 <code class="font-mono text-amber-500">S</code> 随时调出面板）。绘制云线后引出折线引线，自动生成居于基线上下的批注内容、日期、修订正三角 (△) 符号与匿名编组。</td>
+                <td class="py-3 px-4"><button onclick="copyCmd('XDYX', this)" class="px-2.5 py-1 rounded border border-slate-300 dark:border-slate-700 hover:border-blue-500 font-mono text-[11px]">复制 XDYX</button></td>
+              </tr>
+              <tr class="hover:bg-slate-50/80 dark:hover:bg-slate-800/40">
+                <td class="py-3 px-4 font-mono font-bold text-blue-600 dark:text-blue-400">ZRC</td>
+                <td class="py-3 px-4 font-semibold text-slate-900 dark:text-white">已有曲线转修订云线</td>
+                <td class="py-3 px-4 text-slate-600 dark:text-slate-300">支持批量框选 <code class="font-mono">LWPOLYLINE, POLYLINE, CIRCLE, ELLIPSE, ARC, SPLINE</code>，按当前设定的大小弧长与手绘/普通笔触将其原位替换为闭合修订云线。</td>
+                <td class="py-3 px-4"><button onclick="copyCmd('ZRC', this)" class="px-2.5 py-1 rounded border border-slate-300 dark:border-slate-700 hover:border-blue-500 font-mono text-[11px]">复制 ZRC</button></td>
+              </tr>
+              <tr class="hover:bg-slate-50/80 dark:hover:bg-slate-800/40">
+                <td class="py-3 px-4 font-mono font-bold text-blue-600 dark:text-blue-400">DRC</td>
+                <td class="py-3 px-4 font-semibold text-slate-900 dark:text-white">独立裸画云线</td>
+                <td class="py-3 px-4 text-slate-600 dark:text-slate-300">独立裸画云线（<strong>默认自由手绘 F</strong>，移动光标实时成弧，靠近起点自动吸附闭合；支持 <code class="font-mono text-blue-500">R</code> 矩形 / <code class="font-mono text-blue-500">P</code> 多边形带U撤销 / <code class="font-mono text-blue-500">C</code> 圆形 / <code class="font-mono text-blue-500">O</code> 对象 / <code class="font-mono text-blue-500">V</code> 反转弧向 / <code class="font-mono text-blue-500">A</code> 弧长 / <code class="font-mono text-blue-500">S</code> 设置）。连续绘制循环，ESC 或回车结束。</td>
+                <td class="py-3 px-4"><button onclick="copyCmd('DRC', this)" class="px-2.5 py-1 rounded border border-slate-300 dark:border-slate-700 hover:border-blue-500 font-mono text-[11px]">复制 DRC</button></td>
+              </tr>
+              <tr class="hover:bg-slate-50/80 dark:hover:bg-slate-800/40">
+                <td class="py-3 px-4 font-mono font-bold text-blue-600 dark:text-blue-400">GRC</td>
+                <td class="py-3 px-4 font-semibold text-slate-900 dark:text-white">文字批量刷外框云线</td>
+                <td class="py-3 px-4 text-slate-600 dark:text-slate-300">支持批量选择单行文字（TEXT）、多行文字（MTEXT）或属性定义（ATTDEF），自动提取外包围盒并向外偏移生成矩形修订云线外框。</td>
+                <td class="py-3 px-4"><button onclick="copyCmd('GRC', this)" class="px-2.5 py-1 rounded border border-slate-300 dark:border-slate-700 hover:border-blue-500 font-mono text-[11px]">复制 GRC</button></td>
+              </tr>
+              <tr class="hover:bg-slate-50/80 dark:hover:bg-slate-800/40">
+                <td class="py-3 px-4 font-mono font-bold text-blue-600 dark:text-blue-400">CRC</td>
+                <td class="py-3 px-4 font-semibold text-slate-900 dark:text-white">多云线关联补连引线</td>
+                <td class="py-3 px-4 text-slate-600 dark:text-slate-300">先点选一个目标批注文字，再框选任意数量的独立云线，系统自动从每个云线求最近点连线至文字基点，同步写入 <code class="font-mono">XDYX_SYS</code> 扩展数据并合并为匿名编组。</td>
+                <td class="py-3 px-4"><button onclick="copyCmd('CRC', this)" class="px-2.5 py-1 rounded border border-slate-300 dark:border-slate-700 hover:border-blue-500 font-mono text-[11px]">复制 CRC</button></td>
+              </tr>
+              <tr class="hover:bg-slate-50/80 dark:hover:bg-slate-800/40">
+                <td class="py-3 px-4 font-mono font-bold text-blue-600 dark:text-blue-400">XRA</td>
+                <td class="py-3 px-4 font-semibold text-slate-900 dark:text-white">全图校审汇总表导出</td>
+                <td class="py-3 px-4 text-slate-600 dark:text-slate-300">扫描全图带有 <code class="font-mono">XDYX_SYS</code> 扩展数据的批注对象，自动去重后在指定位置生成<strong>包含【序号、修订(△)、批注人、日期、问题及修改说明】的 5 列</strong>原生 <code class="font-mono">AcDbTable</code> 汇总表。</td>
+                <td class="py-3 px-4"><button onclick="copyCmd('XRA', this)" class="px-2.5 py-1 rounded border border-slate-300 dark:border-slate-700 hover:border-blue-500 font-mono text-[11px]">复制 XRA</button></td>
+              </tr>
+              <tr class="hover:bg-slate-50/80 dark:hover:bg-slate-800/40">
+                <td class="py-3 px-4 font-mono font-bold text-blue-600 dark:text-blue-400">EDRC / XED</td>
+                <td class="py-3 px-4 font-semibold text-slate-900 dark:text-white">修改编组批注与编号</td>
+                <td class="py-3 px-4 text-slate-600 dark:text-slate-300">点击图中任意已标注云线、文字或三角符号，自动穿透编组提取所有关联图元，弹出专用面板修改批注词、批注人、日期及修订编号；修改后自动更新 MTEXT 内容、同步更新云线扩展数据 (XData)、刷新三角编号并<strong>依据最新文字长度自适应重算并拉伸/收缩托底基线</strong>，保持编组联动完好。</td>
+                <td class="py-3 px-4"><button onclick="copyCmd('EDRC', this)" class="px-2.5 py-1 rounded border border-slate-300 dark:border-slate-700 hover:border-blue-500 font-mono text-[11px]">复制 EDRC</button></td>
+              </tr>
+              <tr class="hover:bg-slate-50/80 dark:hover:bg-slate-800/40">
+                <td class="py-3 px-4 font-mono font-bold text-blue-600 dark:text-blue-400">ZKG</td>
+                <td class="py-3 px-4 font-semibold text-slate-900 dark:text-white">编组关联选择开关</td>
+                <td class="py-3 px-4 text-slate-600 dark:text-slate-300">切换系统变量 <code class="font-mono">PICKSTYLE</code> 的第 1 位（Group selection）。开启时点击云线或文字将整体选中；关闭时可单独移动文字或微调引线端点。</td>
+                <td class="py-3 px-4"><button onclick="copyCmd('ZKG', this)" class="px-2.5 py-1 rounded border border-slate-300 dark:border-slate-700 hover:border-blue-500 font-mono text-[11px]">复制 ZKG</button></td>
+              </tr>
+              <tr class="hover:bg-slate-50/80 dark:hover:bg-slate-800/40">
+                <td class="py-3 px-4 font-mono font-bold text-slate-500 dark:text-slate-400">SXDYX</td>
+                <td class="py-3 px-4 font-semibold text-slate-900 dark:text-white">重置系统默认配置</td>
+                <td class="py-3 px-4 text-slate-600 dark:text-slate-300">一键恢复修订云线的所有出厂参数（图层名、字高、默认弧长范围、笔触样式与内置词库），并清空当前注册表缓存。</td>
+                <td class="py-3 px-4"><button onclick="copyCmd('SXDYX', this)" class="px-2.5 py-1 rounded border border-slate-300 dark:border-slate-700 hover:border-blue-500 font-mono text-[11px]">复制 SXDYX</button></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ================================================================
+           SECTION 06: 底层数据结构与跨版本兼容架构 (CAD 2007 - 2027)
+           ================================================================ -->
+      <section id="sec-architecture" class="bg-white dark:bg-cad-panel rounded-2xl border border-slate-200 dark:border-cad-border p-6 sm:p-8 shadow-sm">
+        <div class="pb-6 border-b border-slate-200 dark:border-cad-border">
+          <span class="text-xs font-mono uppercase tracking-wider text-blue-600 dark:text-blue-400 font-semibold">SECTION 06 // ARCHITECTURE &amp; COMPATIBILITY (2007-2027)</span>
+          <h2 class="text-2xl font-bold text-slate-900 dark:text-white mt-1">底层数据结构与跨版本鲁棒性规范</h2>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+          <!-- XData & Registry Spec -->
+          <div class="p-5 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-cad-border">
+            <h3 class="text-sm font-bold text-slate-900 dark:text-white mb-3 flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-blue-500"></span>
+              扩展数据 (XData) 与注册表存储结构
+            </h3>
+            <div class="space-y-3 text-xs text-slate-600 dark:text-slate-300">
+              <div>
+                <div class="font-mono text-[11px] text-blue-600 dark:text-blue-400 mb-1">1. 图元扩展数据 (APPID: "XDYX_SYS")</div>
+                <pre class="p-3 rounded-lg bg-slate-900 text-slate-200 font-mono text-[11px] overflow-x-auto leading-relaxed">(-3 ("XDYX_SYS"
+      (1000 . "张工")                     ; 索引 0: 批注人 (Author)
+      (1000 . "20261106")                 ; 索引 1: 批注日期 (Date)
+      (1000 . "此处梁高与结构图不符")     ; 索引 2: 批注正文 (Note)
+      (1000 . "1")                        ; 索引 3: 修订版本号 (RevNum, 如 "1", "2", "A")
+    ))</pre>
+              </div>
+              <div>
+                <div class="font-mono text-[11px] text-blue-600 dark:text-blue-400 mb-1">2. 配置持久化路径 (Windows 注册表)</div>
+                <code class="block p-2.5 rounded-lg bg-slate-900 text-emerald-400 font-mono text-[11px] break-all">
+                  HKEY_CURRENT_USER\Software\XXF_RevisionCloud_v3
+                </code>
+                <p class="mt-1.5 text-slate-500 dark:text-slate-400">
+                  所有界面参数（含词库列表、历史记录、图层日期后缀开关、WCS 开关、静默模式状态）均实时持久化在该注册表键下，重开 CAD 自动继承。
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <!-- CAD 2007 - 2027 Compatibility Matrix -->
+          <div class="p-5 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-cad-border">
+            <h3 class="text-sm font-bold text-slate-900 dark:text-white mb-3 flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+              AutoCAD 2007 – 2027 关键兼容处理机制
+            </h3>
+            <ul class="space-y-2.5 text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+              <li class="flex items-start gap-2">
+                <span class="font-mono text-emerald-500 font-bold">✓</span>
+                <span><strong>规避 REVCLOUD 参数变更：</strong>AutoCAD 2021+ 对 <code class="font-mono">REVCLOUD</code> 命令新增了“对象(O)/矩形(R)/多边形(P)”子选项调整，v0.1 改用纯数学细分算法直接通过 <code class="font-mono">entmakex</code> 构建 <code class="font-mono">LWPOLYLINE</code>，彻底消除命令行交互差异。</span>
+              </li>
+              <li class="flex items-start gap-2">
+                <span class="font-mono text-emerald-500 font-bold">✓</span>
+                <span><strong>规避 GROUP 模态弹窗：</strong>在 AutoCAD 2007–2011 中调用 <code class="font-mono">_.GROUP</code> 会强制弹出“对象编组”模态窗口阻塞程序。v0.1 直接向 <code class="font-mono">(namedobjdict)</code> 的 <code class="font-mono">ACAD_GROUP</code> 词典写入匿名 <code class="font-mono">AcDbGroup</code> 记录（DXF 70=1）。</span>
+              </li>
+              <li class="flex items-start gap-2">
+                <span class="font-mono text-emerald-500 font-bold">✓</span>
+                <span><strong>注释性缩放版本检测：</strong>AutoCAD 2007（<code class="font-mono">ACADVER = 17.0</code>）尚无注释性功能。系统自动判断 <code class="font-mono">(&gt;= (atof (getvar "ACADVER")) 17.1)</code> 后再挂载 <code class="font-mono">AcadAnnotative</code> 扩展数据并补偿 <code class="font-mono">CANNOSCALEVALUE</code> 比例。</span>
+              </li>
+              <li class="flex items-start gap-2">
+                <span class="font-mono text-emerald-500 font-bold">✓</span>
+                <span><strong>中文字体自动降级链路：</strong>创建 <code class="font-mono">XDYX_Style</code> 样式时，依次检测系统字体库中的 <code class="font-mono">微软雅黑 (msyh.ttc/ttf) → 黑体 (simhei.ttf) → 宋体 (simsun.ttc) → txt.shx + gbcbig.shx</code>，杜绝问号乱码。</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- Footer -->
+      <footer class="text-center text-xs text-slate-400 dark:text-slate-500 py-6 border-t border-slate-200 dark:border-cad-border">
+        XDYX 修订云线批注系统 v0.1 技术文档 · 适用于 AutoCAD 2007 - 2027 (32-bit / 64-bit)
+      </footer>
+
+    </main>
+  </div>
+
+  <!-- ================================================================
+       JAVASCRIPT: Interactive DCL Simulator, Scallop Path Generator & UI Logic
+       ================================================================ -->
+  <script>
+    // Simulator State
+    let simColor = '#ff3b3b';
+    let leaderDir = 'right'; // 'right' or 'left'
+
+    // Control Tooltip Dictionary
+    const controlTips = {
+      img_preview: {
+        title: '实时样式与布局预览 (img_preview)',
+        desc: 'DCL 内部通过 vector_image 与 fill_image 实时绘制矢量预览。当您在面板上切换【矩形/多边形】、【普通细线/手绘美工】、【单区/布尔多云线】、【显批注人/显日期】或修改颜色时，预览画布会立即重绘反馈。'
+      },
+      author_row: {
+        title: '批注人 & 显隐控制 (Author / ShowAuthor / ShowDate)',
+        desc: '默认自动读取 CAD 登录用户名 (getvar "LOGINNAME")。勾选“显批注人”会在批注文字前加上“姓名 : ”前缀；勾选“显日期”会在下划线下方增加第二行“时间 : YYYYMMDD”。'
+      },
+      date_row: {
+        title: '批注日期与自动当天日期锁定 (Date / ForceDate)',
+        desc: '勾选“自动使用当天日期”时，每次启动插件会自动读取系统变量 CDATE 更新为当日日期并锁定输入框；取消勾选后可手动输入任意指定归档日期。'
+      },
+      note_row: {
+        title: '批注内容与历史记录回填 (CustomNote / History)',
+        desc: '输入当前校审修改意见。每次成功绘制批注后，该词条会自动置顶写入历史库（最多保留最近 15 条不重复记录），方便在同类图纸校审中快速复用。'
+      },
+      dict_list: {
+        title: '常用批注词库列表 (支持检索与双击直接开画)',
+        desc: '支持关键词实时过滤检索。单击词条可将其回填至上方“批注词”输入框；【双击词条】将直接保存当前设置并关闭对话框进入十字光标绘制状态！'
+      },
+      dict_btns: {
+        title: '词库管理按钮组 (新增 / 修改 / 删除 / 排序 / 导入导出)',
+        desc: 'v0.1 新增了【修改】按钮，选中列表项并编辑上方文字后点击“修改”即可原位更新；支持将词库导出为外部 .txt 文本文件分享给团队其他设计人员一键导入合并。'
+      },
+      cloud_params: {
+        title: '云线几何参数 (形态 / 笔触 / 布尔多云线)',
+        desc: '• 形态：支持两点矩形或任意顶点多边形（带橡皮筋预览）。\n• 笔触：普通细线采用恒定线宽 0；手绘美工采用终点线宽 0.075×弦长模拟美工刀笔触。\n• 布尔多云线：连续框选多个区域，重叠部分自动并集融合，离散部分自动引出多条引线汇聚到同一文字。'
+      },
+      pick_arc: {
+        title: '拾取同步已有批注参数 (PICK_ARC)',
+        desc: '点击【拾取同步<】后点选图中任意已有的云线或批注文字，程序会自动穿透 ACAD_GROUP 编组，一次性提取并同步其【小弧长、大弧长、手绘/普通笔触、文字样式及字高】。'
+      },
+      layer_style: {
+        title: '图层与文字样式环境 (Layer / LayerDate / WCS)',
+        desc: '• 层名加日期后缀：勾选后自动将图层命名为“XDYX_修订云线-20261103”，便于按校审批次开关图层。\n• 按WCS水平生成：即使当前处于旋转过的 UCS 坐标系下，生成的批注文字依然保持水平正交易读。'
+      },
+      color_picker: {
+        title: 'AutoCAD 标准索引色选择 (acad_colordlg)',
+        desc: '点击色块可调用 AutoCAD 原生调色板选择 1~255 号索引色（ACI），新建图层、云线、引线与批注文字将统一应用该颜色。'
+      },
+      skip_mode: {
+        title: '静默极速模式 (SkipDCL)',
+        desc: '勾选“下次跳过此面板”后，再次输入 XDYX 或 XRC 将不再弹出对话框，直接按上次配置连续绘制云线；在提示选点时按 S 键回车可随时重新唤出面板。'
+      },
+      toolbox: {
+        title: '六大快捷工具箱 (ZRC / DRC / GRC / CRC / XRA / ZKG)',
+        desc: '点击按钮可在当前会话直接跳转执行对应工具，所有工具也均已注册为 CAD 顶层命令，平时无需打开面板即可直接在命令行输入运行。'
+      }
+    };
+
+    function showControlTip(key) {
+      const item = controlTips[key];
+      if (!item) return;
+      document.getElementById('tip-title').textContent = '控件技术解析：' + item.title;
+      document.getElementById('tip-desc').textContent = item.desc;
+    }
+
+    function toggleAutoDate() {
+      const auto = document.getElementById('sim-auto-date').checked;
+      const dateInput = document.getElementById('sim-date');
+      dateInput.disabled = auto;
+      if (auto) {
+        dateInput.value = '20261103';
+      }
+      updateSimulator();
+    }
+
+    function selectDictItem(el, text) {
+      const container = document.getElementById('sim-dict-box');
+      Array.from(container.children).forEach(c => {
+        c.className = 'px-2 py-1 cursor-pointer hover:bg-blue-50';
+      });
+      el.className = 'px-2 py-1 cursor-pointer bg-blue-600 text-white';
+      document.getElementById('sim-note').value = text;
+      showControlTip('dict_list');
+      updateSimulator();
+    }
+
+    function setSimColor(hex, label) {
+      simColor = hex;
+      document.getElementById('sim-color-label').textContent = label;
+      showControlTip('color_picker');
+      updateSimulator();
+    }
+
+    function setLeaderDir(dir) {
+      leaderDir = dir;
+      const btnRight = document.getElementById('btn-dir-right');
+      const btnLeft = document.getElementById('btn-dir-left');
+      if (dir === 'right') {
+        btnRight.className = 'px-2 py-0.5 rounded bg-blue-600 text-white text-[11px]';
+        btnLeft.className = 'px-2 py-0.5 rounded bg-slate-800 text-slate-300 hover:bg-slate-700 text-[11px]';
+      } else {
+        btnLeft.className = 'px-2 py-0.5 rounded bg-blue-600 text-white text-[11px]';
+        btnRight.className = 'px-2 py-0.5 rounded bg-slate-800 text-slate-300 hover:bg-slate-700 text-[11px]';
+      }
+      updateSimulator();
+    }
+
+    // Generate SVG Revision Cloud Path from CCW Polygon Points
+    function buildCloudPathFromPolygon(pts, stepLen) {
+      let d = '';
+      const n = pts.length;
+      for (let i = 0; i < n; i++) {
+        const p1 = pts[i];
+        const p2 = pts[(i + 1) % n];
+        const dx = p2[0] - p1[0];
+        const dy = p2[1] - p1[1];
+        const dist = Math.hypot(dx, dy);
+        const steps = Math.max(2, Math.round(dist / stepLen));
+        for (let s = 0; s < steps; s++) {
+          const sx = p1[0] + (dx * s) / steps;
+          const sy = p1[1] + (dy * s) / steps;
+          const ex = p1[0] + (dx * (s + 1)) / steps;
+          const ey = p1[1] + (dy * (s + 1)) / steps;
+          const segDist = Math.hypot(ex - sx, ey - sy);
+          const r = segDist * 0.56;
+          if (i === 0 && s === 0) {
+            d += `M ${sx.toFixed(1)},${sy.toFixed(1)} `;
+          }
+          // Sweep=1 creates outward bulge for screen-coordinate clockwise / CAD CCW loop
+          d += `A ${r.toFixed(1)},${r.toFixed(1)} 0 0,1 ${ex.toFixed(1)},${ey.toFixed(1)} `;
+        }
+      }
+      return d + 'Z';
+    }
+
+    function updateSimulator() {
+      const author = document.getElementById('sim-author').value.trim() || '张工';
+      const showAuthor = document.getElementById('sim-show-author').checked;
+      const showDate = document.getElementById('sim-show-date').checked;
+      const showRev = document.getElementById('sim-show-rev') ? document.getElementById('sim-show-rev').checked : true;
+      const revNum = document.getElementById('sim-rev-num') ? (document.getElementById('sim-rev-num').value.trim() || '1') : '1';
+      const dateStr = document.getElementById('sim-date').value.trim() || '20261106';
+      const note = document.getElementById('sim-note').value.trim() || '此处需修改';
+      const baseLayer = document.getElementById('sim-layer').value.trim() || 'XDYX_修订云线';
+      const layerDate = document.getElementById('sim-layer-date').checked;
+
+      const ctype = document.querySelector('input[name="sim-ctype"]:checked').value;
+      const cstyle = document.querySelector('input[name="sim-cstyle"]:checked').value;
+      const multi = document.querySelector('input[name="sim-multi"]:checked').value;
+
+      const finalLayer = layerDate ? `${baseLayer}-${dateStr}` : baseLayer;
+      const layerIndicator = document.getElementById('cad-layer-indicator');
+      layerIndicator.textContent = `图层: ${finalLayer}`;
+      layerIndicator.style.color = simColor;
+
+      // 1. Update Main CAD Viewport SVG
+      const mainSvg = document.getElementById('cad-main-svg');
+      let polyPts;
+      let anchorRight = [235, 140];
+      let anchorLeft = [75, 140];
+
+      if (multi === 'multi') {
+        // Merged L-shape polygon
+        polyPts = [
+          [75, 65], [175, 65], [175, 115], [240, 115],
+          [240, 205], [125, 205], [125, 155], [75, 155]
+        ];
+        anchorRight = [240, 155];
+        anchorLeft = [75, 115];
+      } else if (ctype === 'poly') {
+        // 5-gon polygon
+        polyPts = [
+          [95, 68], [205, 62], [242, 132], [190, 206], [78, 182]
+        ];
+        anchorRight = [242, 132];
+        anchorLeft = [78, 135];
+      } else {
+        // Standard rectangle
+        polyPts = [
+          [80, 75], [235, 75], [235, 198], [80, 198]
+        ];
+        anchorRight = [235, 136];
+        anchorLeft = [80, 136];
+      }
+
+      const cloudPath = buildCloudPathFromPolygon(polyPts, 24);
+      const strokeW = cstyle === 'hand' ? '3.4' : '1.8';
+      const dashStyle = cstyle === 'hand' ? 'stroke-linecap="round" stroke-linejoin="round"' : '';
+
+      const topText = showAuthor ? `${author} : ${note}` : note;
+      const dateText = `时间 : ${dateStr}`;
+      const textLen = Math.max(120, Math.min(220, Math.max(topText.length * 12.5, dateText.length * 9.5)));
+      const triWidth = showRev ? 22 : 0;
+
+      let leaderSvg = '';
+      if (leaderDir === 'right') {
+        const kx = 275;
+        const ky = 98;
+        const tx = showRev ? kx + 28 : kx + 6;
+        const rx = tx + textLen;
+        
+        let triSvg = '';
+        if (showRev) {
+          triSvg = `
+            <polygon points="${kx},${ky} ${kx + 22},${ky} ${kx + 11},${ky - 19}" fill="none" stroke="${simColor}" stroke-width="1.8" />
+            <text x="${kx + 11}" y="${ky - 5}" fill="${simColor}" font-size="11" text-anchor="middle" font-family="monospace" font-weight="bold">${escapeXml(revNum)}</text>
+          `;
+        }
+
+        leaderSvg = `
+          <line x1="${anchorRight[0]}" y1="${anchorRight[1]}" x2="${kx}" y2="${ky}" stroke="${simColor}" stroke-width="1.8" />
+          <line x1="${kx}" y1="${ky}" x2="${rx}" y2="${ky}" stroke="${simColor}" stroke-width="1.8" />
+          ${triSvg}
+          <circle cx="${kx}" cy="${ky}" r="3" fill="#ffff00" />
+          <!-- Top Text: Above baseline (BL alignment) -->
+          <text x="${tx}" y="${ky - 6}" fill="${simColor}" font-size="13" font-family="Microsoft YaHei">${escapeXml(topText)}</text>
+          <!-- Bottom Text: Below baseline (TL alignment) -->
+          ${showDate ? `<text x="${tx}" y="${ky + 17}" fill="${simColor}" font-size="11.5" font-family="Consolas, monospace">${escapeXml(dateText)}</text>` : ''}
+          <text x="${kx}" y="${ky + 38}" fill="#64748b" font-size="10" font-family="monospace">基线上: DXF 71=7 (BL) | 基线下: DXF 71=1 (TL)</text>
+        `;
+      } else {
+        // Shift cloud right so left leader has room
+        const shiftX = 185;
+        const shiftedPts = polyPts.map(p => [p[0] + shiftX, p[1]]);
+        const shiftedCloudPath = buildCloudPathFromPolygon(shiftedPts, 24);
+        const ax = anchorLeft[0] + shiftX;
+        const ay = anchorLeft[1];
+        const kx = ax - 42;
+        const ky = 98;
+        const tx = showRev ? kx - 28 : kx - 6;
+        const lx = Math.max(16, tx - textLen);
+
+        let triSvg = '';
+        if (showRev) {
+          triSvg = `
+            <polygon points="${kx},${ky} ${kx - 22},${ky} ${kx - 11},${ky - 19}" fill="none" stroke="${simColor}" stroke-width="1.8" />
+            <text x="${kx - 11}" y="${ky - 5}" fill="${simColor}" font-size="11" text-anchor="middle" font-family="monospace" font-weight="bold">${escapeXml(revNum)}</text>
+          `;
+        }
+
+        mainSvg.innerHTML = `
+          <!-- Architectural background lines for context -->
+          <g stroke="#1e293b" stroke-width="1">
+            <line x1="20" y1="140" x2="480" y2="140" stroke-dasharray="10,4,2,4"/>
+            <line x1="340" y1="20" x2="340" y2="250" stroke-dasharray="10,4,2,4"/>
+            <rect x="285" y="95" width="110" height="75" fill="none" stroke="#334155" stroke-width="1.2"/>
+          </g>
+          <path d="${shiftedCloudPath}" fill="${simColor}15" stroke="${simColor}" stroke-width="${strokeW}" ${dashStyle}/>
+          <line x1="${ax}" y1="${ay}" x2="${kx}" y2="${ky}" stroke="${simColor}" stroke-width="1.8" />
+          <line x1="${lx}" y1="${ky}" x2="${kx}" y2="${ky}" stroke="${simColor}" stroke-width="1.8" />
+          ${triSvg}
+          <circle cx="${kx}" cy="${ky}" r="3" fill="#ffff00" />
+          <!-- Top Text: Above baseline (BR alignment) -->
+          <text x="${tx}" y="${ky - 6}" fill="${simColor}" font-size="13" text-anchor="end" font-family="Microsoft YaHei">${escapeXml(topText)}</text>
+          <!-- Bottom Text: Below baseline (TR alignment) -->
+          ${showDate ? `<text x="${tx}" y="${ky + 17}" fill="${simColor}" font-size="11.5" text-anchor="end" font-family="Consolas, monospace">${escapeXml(dateText)}</text>` : ''}
+          <text x="${kx}" y="${ky + 38}" fill="#64748b" font-size="10" text-anchor="end" font-family="monospace">基线上: DXF 71=9 (BR) | 基线下: DXF 71=3 (TR)</text>
+        `;
+        updateMiniDclPreview(polyPts, strokeW, showAuthor, showDate, showRev, revNum);
+        return;
+      }
+
+      mainSvg.innerHTML = `
+        <!-- Architectural background lines for context -->
+        <g stroke="#1e293b" stroke-width="1">
+          <line x1="20" y1="140" x2="480" y2="140" stroke-dasharray="10,4,2,4"/>
+          <line x1="155" y1="20" x2="155" y2="250" stroke-dasharray="10,4,2,4"/>
+          <rect x="105" y="95" width="105" height="75" fill="none" stroke="#334155" stroke-width="1.2"/>
+        </g>
+        <path d="${cloudPath}" fill="${simColor}15" stroke="${simColor}" stroke-width="${strokeW}" ${dashStyle}/>
+        ${leaderSvg}
+      `;
+
+      // 2. Update Mini DCL Preview SVG
+      updateMiniDclPreview(polyPts, strokeW, showAuthor, showDate, showRev, revNum);
+    }
+
+    function updateMiniDclPreview(polyPts, strokeW, showAuthor, showDate, showRev, revNum) {
+      const miniSvg = document.getElementById('dcl-mini-svg');
+      const scaledPts = polyPts.map(p => [p[0] * 0.45, p[1] * 0.36 + 2]);
+      const miniPath = buildCloudPathFromPolygon(scaledPts, 11);
+      const triSvg = showRev
+        ? `<polygon points="145,34 157,34 151,24" fill="none" stroke="${simColor}" stroke-width="1.2" /><text x="151" y="32" fill="${simColor}" font-size="7" text-anchor="middle" font-family="monospace">${escapeXml(revNum || '1')}</text>`
+        : '';
+      const textStartX = showRev ? 162 : 149;
+      miniSvg.innerHTML = `
+        <path d="${miniPath}" fill="none" stroke="${simColor}" stroke-width="${cstyleValue() === 'hand' ? 2.2 : 1.3}" />
+        <line x1="108" y1="52" x2="145" y2="34" stroke="${simColor}" stroke-width="1.4" />
+        <line x1="145" y1="34" x2="255" y2="34" stroke="${simColor}" stroke-width="1.4" />
+        ${triSvg}
+        ${showAuthor
+          ? `<rect x="${textStartX}" y="24" width="24" height="4" fill="#00ffff" /><rect x="${textStartX + 28}" y="24" width="55" height="4" fill="#00ff00" />`
+          : `<rect x="${textStartX}" y="24" width="76" height="4" fill="#00ff00" />`
+        }
+        ${showDate ? `<rect x="${textStartX}" y="40" width="60" height="4" fill="#ffff00" />` : ''}
+      `;
+    }
+
+    function cstyleValue() {
+      return document.querySelector('input[name="sim-cstyle"]:checked').value;
+    }
+
+    function escapeXml(unsafe) {
+      return unsafe.replace(/[<>&'"]/g, c => {
+        switch (c) {
+          case '<': return '&lt;';
+          case '>': return '&gt;';
+          case '&': return '&amp;';
+          case '\'': return '&apos;';
+          case '"': return '&quot;';
+        }
+      });
+    }
+
+    function scrollToCmd(cmd) {
+      const el = document.getElementById('card-' + cmd);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        el.classList.add('ring-2', 'ring-blue-500');
+        setTimeout(() => el.classList.remove('ring-2', 'ring-blue-500'), 1800);
+      }
+    }
+
+    // Filter Command Reference Table
+    function filterCommandTable() {
+      const q = document.getElementById('cmd-search').value.trim().toUpperCase();
+      const rows = document.querySelectorAll('#cmd-table-body tr');
+      rows.forEach(row => {
+        const text = row.textContent.toUpperCase();
+        row.style.display = text.includes(q) ? '' : 'none';
+      });
+    }
+
+    // Copy Command to Clipboard (iFrame safe)
+    function copyCmd(cmd, btn) {
+      const ta = document.createElement('textarea');
+      ta.value = cmd;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+      const oldText = btn.textContent;
+      btn.textContent = '已复制 ✓';
+      btn.classList.add('bg-emerald-600', 'text-white', 'border-emerald-600');
+      setTimeout(() => {
+        btn.textContent = oldText;
+        btn.classList.remove('bg-emerald-600', 'text-white', 'border-emerald-600');
+      }, 1200);
+    }
+
+    // Theme Toggle
+    function toggleTheme() {
+      const html = document.documentElement;
+      const isDark = html.classList.toggle('dark');
+      document.getElementById('theme-label').textContent = isDark ? '浅色文档' : '深色工程';
+    }
+
+    // Initialize on load
+    window.addEventListener('DOMContentLoaded', () => {
+      updateSimulator();
+    });
+  </script>
+</body>
+</html>

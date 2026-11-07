@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="墨语 X (InkVerse X) v0.1.4 用户使用手册，包含 8 大 C# 核心原生模块与 6 大 VLX 扩展插件的操作说明、实际命令与常见问题解答。">
-    <title>墨语 X (InkVerse X) v0.1.4 用户手册</title>
+    <meta name="description" content="墨语 X (InkVerse X) v0.1.5 用户使用手册，包含 8 大 C# 核心原生模块与 7 大 VLX 实用工具库的操作说明、实际命令与常见问题解答。">
+    <title>墨语 X (InkVerse X) v0.1.5 用户手册</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
@@ -532,6 +532,7 @@
             <h4><i class="fa-solid fa-list-ul"></i> 功能目录</h4>
             <ul>
                 <li class="toc-level-1"><a href="#overview"><i class="fa-solid fa-compass"></i> 1. 概览与系统架构</a></li>
+                <li class="toc-level-1"><a href="#changelog" style="color: #16A34A; font-weight: 600;"><i class="fa-solid fa-bullhorn"></i> v0.1.5 更新要点</a></li>
                 
                 <li class="toc-level-1">
                     <a href="#cs-suite"><i class="fa-solid fa-cube"></i> 2. C# 核心原生模块</a>
@@ -551,12 +552,13 @@
                 <li class="toc-level-1">
                     <a href="#vlx-suite"><i class="fa-solid fa-cubes"></i> 3. VLX 扩展工具库</a>
                     <ul class="toc-level-2">
-                        <li><a href="#vlx-zbbz">3.1 ZBBZ 坐标高程系统</a></li>
-                        <li><a href="#vlx-bhsx">3.2 BHSX 智能编号速写</a></li>
-                        <li><a href="#vlx-zcd">3.3 ZCD 长度统计标注</a></li>
-                        <li><a href="#vlx-czth">3.4 CZTH 全能文本替换</a></li>
-                        <li><a href="#vlx-xzh">3.5 XZH 全能线转换</a></li>
-                        <li><a href="#vlx-xzx">3.6 XZX 泛型转换矩阵</a></li>
+                        <li><a href="#vlx-xdyx">3.1 XDYX 修订云线批注系统 (v0.1)</a></li>
+                        <li><a href="#vlx-zbbz">3.2 ZBBZ 坐标高程系统</a></li>
+                        <li><a href="#vlx-bhsx">3.3 BHSX 智能编号速写</a></li>
+                        <li><a href="#vlx-zcd">3.4 TJCD 长度＆面积统计标注</a></li>
+                        <li><a href="#vlx-czth">3.5 CZTH 全能文本替换</a></li>
+                        <li><a href="#vlx-xzh">3.6 XZH 全能线转换</a></li>
+                        <li><a href="#vlx-xzx">3.7 XZX 泛型转换矩阵</a></li>
                     </ul>
                 </li>
 
@@ -571,19 +573,38 @@
             <header>
                 <span class="brand-badge"><i class="fa-solid fa-layer-group"></i> InkVerse X</span>
                 <h1>墨语 X (InkVerse X) 用户使用手册</h1>
-                <p><i class="fa-solid fa-code-branch"></i> 架构版本: v0.1.4 | 适配 AutoCAD 2007 ~ 2027 (涵盖 R17 至 R27 全世代 32/64 位)</p>
+                <p><i class="fa-solid fa-code-branch"></i> 架构版本: v0.1.5 | 适配 AutoCAD 2007 ~ 2027 (涵盖 R17 至 R27 全世代 32/64 位)</p>
             </header>
+
+            <!-- 当前版本更新要点 (v0.1.5) -->
+            <div id="changelog" style="background: #F0FDF4; border: 1px solid #BBF7D0; border-left: 5px solid #16A34A; padding: 18px 22px; border-radius: 8px; margin: 20px 0 28px 0;">
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;">
+                    <div style="font-size: 15px; font-weight: 700; color: #166534; display: flex; align-items: center; gap: 8px;">
+                        <i class="fa-solid fa-bullhorn"></i> v0.1.5 版本更新要点（2026.11 最新版）
+                    </div>
+                    <span style="background: #DCFCE7; color: #15803D; font-size: 11.5px; font-weight: 700; padding: 2px 10px; border-radius: 20px;">当前最新</span>
+                </div>
+                <div style="font-size: 13px; color: #374151; margin-bottom: 8px; line-height: 1.6;">
+                    本次 <strong>v0.1.5</strong> 更新重点修复了日常制图细节，并对核心实用工具进行了深度扩充：
+                </div>
+                <ul style="margin: 0; padding-left: 20px; font-size: 13px; color: #1F2937; line-height: 1.8;">
+                    <li><strong>新增实用插件 · XDYX 修订云线批注系统 (v0.1)</strong>：正式入列墨语 X 算法库，支持单点动态拖拽绘制、重叠区域自动面域布尔合并 (<code>acUnion</code>)、手绘裸画 (<code>DRC</code>)、文字刷框 (<code>GRC</code>)、多云连线 (<code>CRC</code>)、穿透编组修改批注与三角编号并动态伸缩托底基线 (<code>EDRC</code>)，以及全图 5 列原生校审成果表格一键导出 (<code>XRA</code>)。配有完整独立的本地交互演示手册。</li>
+                    <li><strong>重大功能升级 · TJCD 长度＆面积综合统计控制台 (v0.1.2)</strong>：全面升级原 ZCD 曲线总长统计工具，将原有的【线长统计】与新增的【MJJS 全维度面积测算】深度合并为一体化 DCL 双页微循环状态机控制台，支持 7 类线长测算、面域多孔净面积、3D 表面积与自适应工程表格生成。</li>
+                    <li><strong>细节修复与稳定性优化</strong>：彻底解决切换工作空间与配置文件时 COM 菜单同名重复添加与索引越界异常；优化 CAD Auto VlxSuite 脚本热重载逻辑与 CAD 系统变量 (<code>OSMODE</code> / <code>CMDECHO</code>) 异常中断保护；全面支持浅色与暗色自适应主题换肤。</li>
+                    <li><strong>自动化测试验证</strong>：全套 45 项 MSTest 单元测试覆盖 9 大模块核心逻辑，通过率 100%。</li>
+                </ul>
+            </div>
 
             <!-- 1. 快速概览 -->
             <section id="overview">
                 <div class="highlight">
                     <h3><i class="fa-solid fa-circle-info"></i> 系统架构与设计准则</h3>
-                    <p><b>墨语 X (InkVerse X)</b> 是一套面向工程设计、建筑施工、规划与测绘制图场景的 AutoCAD 辅助插件集合。系统采用 <b>宿主装配 + 8 大 C# 核心原生模块 + 6 大 VLX 扩展工具库</b> 的模块化架构，保障了系统稳定性与功能扩展能力。</p>
+                    <p><b>墨语 X (InkVerse X)</b> 是作者（浅醉·墨语 / Andy_127）业余结合一线工程设计、测绘深化与施工制图实际经验独立开发与维护的 AutoCAD 辅助插件集（个人独立作品，非商业公司或集体团队产品）。系统采用 <b>宿主装配 + 8 大 C# 核心原生模块 + 7 大 VLX 实用工具库</b> 的模块化架构，兼具系统稳定性与功能实用性。</p>
                     <ul>
                         <li><strong>宿主引导程序 (<code>InkVerseX.dll</code>)</strong>：负责 AutoCAD 环境自适应初始化、动态扫描加载各业务子插件，并统一挂载 Ribbon 功能区选项卡、经典下拉菜单与快捷工具栏。</li>
                         <li><strong>8 大 C# 核心原生模块</strong>：涵盖图框排版、批量打印与分拆、输入法智能感知、图层快速控制、表格与文字提取、高清视口截图、数据库分级深度清理、LISP 插件集中调度。</li>
-                        <li><strong>6 大 VLX 扩展工具库</strong>：涵盖坐标高程标注、编号速写、线长统计、多模式文本替换、线型清洗转换、几何图元矩阵重构。</li>
-                        <li><strong>原生图元安全性</strong>：所有操作均通过 AutoCAD 原生 .NET API 构建原生标准对象（图块、多段线、文本、原生表格），无任何第三方自定义实体 (Proxy Entity)，脱离本插件环境图纸完整可读。</li>
+                        <li><strong>7 大 VLX 实用工具库</strong>：涵盖修订云线批注、坐标高程标注、智能编号速写、线长与面积统计、多模式文本替换、线型清洗转换、几何图元矩阵重构。</li>
+                        <li><strong>原生图元安全性</strong>：所有操作均通过 AutoCAD 官方 .NET API 构建原生对象（图块、多段线、文本、原生表格），无任何第三方自定义实体 (Proxy Entity)，脱离本插件环境图纸完整可读。</li>
                         <li><strong>统一安装路径体系</strong>：墨语 X 综合套件安装于 <code>%APPDATA%\InkVerseX</code>；独立分支插件安装于 <code>%APPDATA%\InkVerse\&lt;模块名&gt;</code>，规范整洁。</li>
                     </ul>
                 </div>
@@ -1047,12 +1068,86 @@
             <section id="vlx-suite">
                 <h2><i class="fa-solid fa-cubes"></i> 3. VLX 扩展工具库使用说明</h2>
 
-                <!-- 3.1 ZBBZ -->
+                                <!-- 3.1 XDYX -->
+                <article id="vlx-xdyx">
+                    <h3>
+                        <span class="h3-title">
+                            <img src="Resources/Xdyx.png" onerror="if(this.src.indexOf('Shared/Resources')===-1)this.src='Shared/Resources/Xdyx.png';" alt="Xdyx" class="h3-icon" />
+                            3.1 XDYX - 修订云线批注系统
+                        </span>
+                        <span class="h3-tag">v0.1</span>
+                    </h3>
+                    <p>面向工程实际图纸校审场景的智能修订云线绘制、重叠区域布尔合并、手绘裸画与动态工程批注管理系统。基于纯几何原生构建 (<code>entmakex</code>) 与 <code>ACAD_GROUP</code> 匿名编组字典，提供上下分层托底基线、修订正三角 (△) 符号编号、动态自适应拉伸基线与 5 列原生校审成果表格导出。</p>
+                    
+                    <div class="cmd-box">
+                        <span class="cmd-tag">XDYX / XRC / ZRC / DRC / GRC / CRC / EDRC / XRA / ZKG</span>
+                        <span class="cmd-note">官方命令: InkXDYX / InkXRC / InkZRC / InkDRC / InkGRC / InkCRC / InkEDRC / InkXRA / InkZKG (快捷别名: yx / xrc / zrc / drc / grc / crc / xed / xra / zkg)</span>
+                    </div>
+
+                    <div class="step-box">
+                        <div class="step-title"><i class="fa-solid fa-list-check"></i> 核心功能体系与详细指令说明：</div>
+                        <ol class="step-list">
+                            <li><b>智能云线与分层批注绘制 (<span class="ui-badge">XDYX</span> / <span class="ui-badge">InkXDYX</span> / <span class="ui-badge">XRC</span>)</b>：
+                                <ul>
+                                    <li>键入 <code>XDYX</code> 或 <code>XRC</code> 唤起交互控制面板，设定批注说明、出图日期、修订编号、图层与弧长后即可动态拖拽绘制；</li>
+                                    <li><b>重叠布尔合并与离散汇聚</b>：支持同时框选多个区域。重叠交错区域自动调用 <code>acUnion</code> 面域布尔合并为单一大云线；离散独立区域自动生成多对一分叉引线，汇聚至同一托底基线与批注文字；</li>
+                                    <li><b>上下分层托底基线</b>：批注正文置于基线上方（BL/BR），日期与说明人置于基线下方（TL/TR），基线居中隔离贯穿，彻底杜绝文字被穿刺或转义混淆；引线折角自动生成正等边修订三角 △ 与居中编号；</li>
+                                    <li>支持勾选“静默极速模式”，连续绘制不弹窗，绘图提示下按 <code>S</code> 键随时重新唤出设置面板。</li>
+                                </ul>
+                            </li>
+                            <li><b>图元对象一键转云线 (<span class="ui-badge">ZRC</span> / <span class="ui-badge">InkZRC</span>)</b>：
+                                <ul>
+                                    <li>输入 <code>ZRC</code>，支持单选或批量框选已有的圆、轻量多段线、矩形、椭圆、样条曲线等封闭对象，自动提取几何走向并重构为凸度恒朝外的平滑云线弧。</li>
+                                </ul>
+                            </li>
+                            <li><b>独立裸画云线 (<span class="ui-badge">DRC</span> / <span class="ui-badge">InkDRC</span>)</b>：
+                                <ul>
+                                    <li>输入 <code>DRC</code>，快速绘制不含引线与文字批注的纯几何云线。<b>默认徒手画模式 (F)</b>，光标靠近起点自动闭合捕捉；</li>
+                                    <li>支持丰富分支模式：<code>R</code> (矩形)、<code>P</code> (多边形，支持 <code>U</code> 撤销上一步)、<code>C</code> (圆)、<code>O</code> (转对象)、<code>V</code> (反转内外凸向)、<code>A</code> (动态调整弧长)。</li>
+                                </ul>
+                            </li>
+                            <li><b>文字批量刷云线外框 (<span class="ui-badge">GRC</span> / <span class="ui-badge">InkGRC</span>)</b>：
+                                <ul>
+                                    <li>输入 <code>GRC</code>，框选图纸中零散的单行或多行文字，系统精确计算实体包围盒并按 <code>0.8 × textHeight</code> 自适应外扩生成规则平滑的云线边框。</li>
+                                </ul>
+                            </li>
+                            <li><b>多云线汇聚连引线 (<span class="ui-badge">CRC</span> / <span class="ui-badge">InkCRC</span>)</b>：
+                                <ul>
+                                    <li>输入 <code>CRC</code>，选取多个分散的独立云线并指定批注位置，系统自动引出多对一折线引线汇聚至同一批注并构建匿名编组。</li>
+                                </ul>
+                            </li>
+                            <li><b>穿透编组修改批注与三角编号 (<span class="ui-badge">EDRC</span> / <span class="ui-badge">InkEDRC</span> / <span class="ui-badge">XED</span>) <span style="background: linear-gradient(135deg, #10B981, #059669); color: #fff; font-size: 11px; padding: 1px 6px; border-radius: 4px; font-weight: 700; margin-left: 4px;">v0.1 新增</span></b>：
+                                <ul>
+                                    <li>输入 <code>EDRC</code> 或 <code>XED</code>，穿透匿名编组直接选取已标注云线或引线文字，弹出专用修改对话框；</li>
+                                    <li><b>四维联动自适应刷新</b>：同步更新 MTEXT 文本、刷新云线与文字的 <code>XDYX_SYS</code> XData 扩展字典、重绘修订正三角 △ 与编号、<b>依据修改后的最新文字长度自动重算并动态拉伸/收缩托底基线端点</b>，始终保持黄金比例视觉托底。</li>
+                                </ul>
+                            </li>
+                            <li><b>导出 5 列原生校审汇总表 (<span class="ui-badge">XRA</span> / <span class="ui-badge">InkXRA</span>)</b>：
+                                <ul>
+                                    <li>输入 <code>XRA</code>，一键深度扫描全图云线中的 <code>XDYX_SYS</code> 扩展数据与文字，智能去重提取后生成 <b>5 列 AutoCAD 原生 AcDbTable 表格</b>（<code>序号</code>、<code>修订(△)</code>、<code>批注人</code>、<code>日期</code>、<code>问题及修改说明</code>）。</li>
+                                </ul>
+                            </li>
+                            <li><b>编组关联选择开关 (<span class="ui-badge">ZKG</span> / <span class="ui-badge">InkZKG</span>)</b>：
+                                <ul>
+                                    <li>输入 <code>ZKG</code>，一键切换 CAD 的 <code>PICKSTYLE</code> 系统变量（0 / 1），在“单图元精细拆散微调”与“整组云线批注联动选择移动”之间即时切换。</li>
+                                </ul>
+                            </li>
+                        </ol>
+                    </div>
+
+                    <div style="margin-top: 14px; text-align: right;">
+                        <a href="Resources/docs/XDYX_Help.html" target="_blank" style="color: var(--primary-color); font-weight: 600; text-decoration: none; font-size: 13px;">
+                            <i class="fa-solid fa-up-right-from-square"></i> 打开《XDYX 修订云线批注系统完整交互与技术手册 v0.1》
+                        </a>
+                    </div>
+                </article>
+
+                <!-- 3.2 ZBBZ -->
                 <article id="vlx-zbbz">
                     <h3>
                         <span class="h3-title">
                             <img src="Resources/Coord.png" onerror="if(this.src.indexOf('Shared/Resources')===-1)this.src='Shared/Resources/Coord.png';" alt="Coord" class="h3-icon" />
-                            3.1 ZBBZ - 坐标高程综合标注系统
+                            3.2 ZBBZ - 坐标高程综合标注系统
                         </span>
                         <span class="h3-tag">ZBBZ</span>
                     </h3>
@@ -1060,7 +1155,7 @@
                     
                     <div class="cmd-box">
                         <span class="cmd-tag">ZBBZ / PLBZ / SCTB / ZBSZ</span>
-                        <span class="cmd-note">快捷别名: InkZBBZ / InkPLBZ / InkSCTB / InkZBSZ</span>
+                        <span class="cmd-note">官方别名: InkZBBZ / InkPLBZ / InkSCTB / InkZBSZ</span>
                     </div>
 
                     <div class="doc-img-container">
@@ -1102,7 +1197,7 @@
                     <h3>
                         <span class="h3-title">
                             <img src="Resources/Numbering.png" onerror="if(this.src.indexOf('Shared/Resources')===-1)this.src='Shared/Resources/Numbering.png';" alt="Numbering" class="h3-icon" />
-                            3.2 BHSX - 智能编号速写系统
+                            3.3 BHSX - 智能编号速写系统
                         </span>
                         <span class="h3-tag">BHSX</span>
                     </h3>
@@ -1110,7 +1205,7 @@
                     
                     <div class="cmd-box">
                         <span class="cmd-tag">BHSX / BHTB</span>
-                        <span class="cmd-note">快捷别名: InkBHSX / InkBHTB</span>
+                        <span class="cmd-note">官方别名: InkBHSX / InkBHTB</span>
                     </div>
 
                     <div class="doc-img-container">
@@ -1141,48 +1236,57 @@
                     </div>
                 </article>
 
-                <!-- 3.3 ZCD -->
+                <!-- 3.3 TJCD -->
                 <article id="vlx-zcd">
                     <h3>
                         <span class="h3-title">
                             <img src="Resources/Length.png" onerror="if(this.src.indexOf('Shared/Resources')===-1)this.src='Shared/Resources/Length.png';" alt="Length" class="h3-icon" />
-                            3.3 ZCD - 长度统计标注工具
+                            3.4 TJCD - 长度＆面积统计标注综合控制台
                         </span>
-                        <span class="h3-tag">ZCD</span>
+                        <span class="h3-tag">TJCD / MJJS / ZCD</span>
                     </h3>
-                    <p>专为工程制图研发的线元长度测量统计与分项标注工具，内置无缝单位换算与原生表格插入。</p>
+                    <p>专为工程设计人员打造的 AutoCAD 综合统计工具集。有机融合原 ZCD 曲线总长统计与 MJJS 全维度面积计算两大系统，采用原生 DCL 状态机微循环双页架构，辅以集中式常量参数体系与 DAL 数据隔离机制，全面支持多孔面域净面积、三维表面积、分项引线标注与自适应工程表格。</p>
                     
                     <div class="cmd-box">
+                        <span class="cmd-tag">TJCD</span>
+                        <span class="cmd-tag">MJJS</span>
                         <span class="cmd-tag">ZCD</span>
-                        <span class="cmd-note">快捷别名: InkZCD</span>
+                        <span class="cmd-note">官方别名: InkTJCD / InkMJJS / InkZCD / InkREGALL / InkREGIONAREA</span>
                     </div>
 
                     <div class="doc-img-container">
-                        <img src="Resources/docs/ZCD_setting_ui.png" onerror="if(this.src.indexOf('Shared/Resources')===-1)this.src='Shared/Resources/docs/ZCD_setting_ui.png';" alt="ZCD 长度统计控制面板" />
-                        <div class="doc-img-caption">图 3.3 - ZCD 长度统计参数与单位换算控制面板</div>
+                        <img src="Resources/docs/TJCD_setting_ui.png" onerror="if(this.src.indexOf('Shared/Resources')===-1)this.src='Shared/Resources/docs/TJCD_setting_ui.png';" alt="TJCD 长度＆面积统计控制面板" />
+                        <div class="doc-img-caption">图 3.3 - TJCD 长度＆面积综合统计控制面板</div>
                     </div>
 
                     <div class="step-box">
                         <div class="step-title"><i class="fa-solid fa-list-check"></i> 详细操作步骤与功能说明：</div>
                         <ol class="step-list">
-                            <li><b>启动与单位设置 (<span class="ui-badge">ZCD</span> / <span class="ui-badge">InkZCD</span>)</b>：
+                            <li><b>双页控制台启动 (<span class="ui-badge">TJCD</span> / <span class="ui-badge">MJJS</span> / <span class="ui-badge">ZCD</span>)</b>：
                                 <ul>
-                                    <li>输入 <code>ZCD</code> 打开面板，设置图纸原生单位 (mm/m) 与目标输出单位 (mm/cm/m/km)，程序自动计算折算比例。</li>
+                                    <li>键入 <code>TJCD</code> 打开综合控制台主面板，可在顶部平滑切换【面积计算】与【长度统计】页面；亦可敲击 <code>MJJS</code> 直达面积页，敲击 <code>ZCD</code> 直达长度页。</li>
                                 </ul>
                             </li>
-                            <li><b>17 种几何图元混合框选</b>：
+                            <li><b>面积计算模型与高精几何解析</b>：
                                 <ul>
-                                    <li>框选直线、多段线、三维多段线、样条曲线、圆弧、椭圆或多线 (MLINE)，毫秒级完成几何长度聚合计算。</li>
+                                    <li>全面支持多孔洞面域净面积提取、空间三维表面积 (<code>REGALL</code>)、二维水平投影、图案填充及多段线闭合解析，支持 ㎡ / mm² / 亩 / ha 等行业单位折算。</li>
                                 </ul>
                             </li>
-                            <li><b>分项序号引线与表达合成</b>：
+                            <li><b>长度线元高精聚合与折减</b>：
                                 <ul>
-                                    <li>在线条中心自动标注分项序号（如 ①②③），并在总引线位置生成合成表达式（如 <code>① + ② = 128.5 m</code>）。</li>
+                                    <li>框选直线、二维多段线、三维空间样条曲线、圆弧、椭圆或 MLINE 复合多线，支持折算比例与折减系数测算。</li>
                                 </ul>
                             </li>
-                            <li><b>插入统计表格</b>：
+                            <li><b>DAL 矩阵参数防冲突与原子事务撤销</b>：
                                 <ul>
-                                    <li>命令行提示是否插入表格，输入 <code>Y</code> 并指定点，即可直接插入包含图层、线型、分项长度与总长汇总的 CAD 原生 Table 表格。</li>
+                                    <li>图纸比例、字高、字体样式全局同步；单位、小数位、落图专用图层 (A-AREA-TEXT / A-LEN-TEXT) 与分项序号物理严格隔离；</li>
+                                    <li>集成双轨原子事务安全撤销，批量生成标注和表格后，只需轻按一次 Ctrl+Z 即可完全撤销还原。</li>
+                                </ul>
+                            </li>
+                            <li><b>分项引线标注与自适应工程报表生成</b>：
+                                <ul>
+                                    <li>支持生成总注算式、分项序号引线标注（带圈数字 ①②③、括号序号等）；</li>
+                                    <li>优先调用 AutoCAD ActiveX Table 引擎排版，在精简版或老旧 CAD 平台下自动无缝降级为矢量 LINE+TEXT 实体网格表格，绝不闪退。</li>
                                 </ul>
                             </li>
                         </ol>
@@ -1202,7 +1306,7 @@
                     
                     <div class="cmd-box">
                         <span class="cmd-tag">CZTH / CZTH-RESET</span>
-                        <span class="cmd-note">主向导 / 重置规则缓存 (快捷别名: InkCZTH / InkCZTHReset)</span>
+                        <span class="cmd-note">主向导 / 重置规则缓存 (官方别名: InkCZTH / InkCZTHReset)</span>
                     </div>
 
                     <div class="doc-img-container">
@@ -1240,7 +1344,7 @@
                     
                     <div class="cmd-box">
                         <span class="cmd-tag">XZH</span>
-                        <span class="cmd-note">启动转换控制面板 (快捷别名: InkXZH)</span>
+                        <span class="cmd-note">启动转换控制面板 (官方别名: InkXZH)</span>
                     </div>
 
                     <div class="doc-img-container">
@@ -1265,12 +1369,12 @@
                     </div>
                 </article>
 
-                <!-- 3.6 XZX -->
+                <!-- 3.7 XZX -->
                 <article id="vlx-xzx">
                     <h3>
                         <span class="h3-title">
                             <img src="Resources/Matrix.png" onerror="if(this.src.indexOf('Shared/Resources')===-1)this.src='Shared/Resources/Matrix.png';" alt="Matrix" class="h3-icon" />
-                            3.6 XZX - 泛型图元转换矩阵
+                            3.7 XZX - 泛型图元转换矩阵
                         </span>
                         <span class="h3-tag">XZX</span>
                     </h3>
@@ -1278,12 +1382,12 @@
                     
                     <div class="cmd-box">
                         <span class="cmd-tag">XZX</span>
-                        <span class="cmd-note">执行转换矩阵主命令 (快捷别名: InkXZX)</span>
+                        <span class="cmd-note">执行转换矩阵主命令 (官方别名: InkXZX)</span>
                     </div>
 
                     <div class="doc-img-container">
                         <img src="Resources/docs/XZX_setting_ui.png" onerror="if(this.src.indexOf('Shared/Resources')===-1)this.src='Shared/Resources/docs/XZX_setting_ui.png';" alt="XZX 转换矩阵控制面板" />
-                        <div class="doc-img-caption">图 3.6 - XZX 泛型转换参数与闭合诊断面板</div>
+                        <div class="doc-img-caption">图 3.7 - XZX 泛型转换参数与闭合诊断面板</div>
                     </div>
 
                     <div class="step-box">
@@ -1437,7 +1541,8 @@
             <!-- 作者与反馈 -->
             <section id="contact">
                 <footer class="footer">
-                    <p>墨语 X (InkVerse X) · 作者：<b>浅醉·墨语 (Andy_127)</b></p>
+                    <p>墨语 X (InkVerse X) · 个人独立开发与维护 · 作者：<b>浅醉·墨语 (Andy_127)</b></p>
+                    <p style="font-size: 12px; color: #94A3B8; margin: 4px 0 10px 0;">注：本项目为个人业余开源探索作品，非任何商业公司或集体团队产品。</p>
                     <p>联系方式：QQ: 806894478 | Email: ypj127@163.com</p>
                     <div style="margin: 20px auto; max-width: 520px; background: #ffffff; padding: 12px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08); border: 1px solid var(--border-color);">
                         <img src="Resources/docs/Contact.png" onerror="if(this.src.indexOf('Shared/Resources')===-1)this.src='Shared/Resources/docs/Contact.png';" alt="联系与打赏二维码" style="width: 100%; height: auto; display: block; border-radius: 8px;" />

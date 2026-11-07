@@ -1,3 +1,10 @@
+# IDE & Editor files
+.vs/
+.idea/
+.vscode/
+*.user
+*.suo
+
 # OS generated files
 .DS_Store
 Thumbs.db
@@ -10,3 +17,4 @@ Desktop.ini
 *.bak
 ~$*
 *.exe
+
